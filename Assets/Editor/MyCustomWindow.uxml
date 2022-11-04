@@ -1,0 +1,5 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Label text="Hello World! From UXML" />
+    <ui:MinMaxSlider label="Min/Max Slider" min-value="8.16" max-value="12" low-limit="-37.55" high-limit="40" style="flex-wrap: wrap; flex-direction: row; flex-shrink: initial; flex-grow: initial; flex-basis: auto;" />
+    <ui:DropdownField label="Dropdown" index="-1" choices="System.Collections.Generic.List`1[System.String]" />
+</ui:UXML>
