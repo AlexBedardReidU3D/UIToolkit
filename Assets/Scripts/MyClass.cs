@@ -5,8 +5,10 @@ using UnityEngine;
 [GenerateUXML]
 public class MyClass : MonoBehaviour
 {
-    [CustomLabel("Label 1")]
+    [CustomLabel("Label 1"), ReadOnly]
     public int myInt;
+    [CustomLabel("My Number"), DisplayAsString]
+    public int myInt2;
     [SerializeField, CustomLabel("Label 2")]
     private float m_MyFloat;
     private float m_MyFloatPrivate;
@@ -20,6 +22,7 @@ public class MyClass : MonoBehaviour
     public Vector2Int myV2Int;
     public Vector3Int myV3Int;
     public Texture2D myTexture;
+    [ReadOnly]
     public GameObject myGameObject;
     
     // Start is called before the first frame update

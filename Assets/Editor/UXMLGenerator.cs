@@ -36,7 +36,10 @@ namespace Editor
         private static readonly string OPENER =
             "<ui:UXML xmlns:ui=\"UnityEngine.UIElements\" xmlns:uie=\"UnityEditor.UIElements\" editor-extension-mode=\"True\">";
         private static readonly string CLOSER = "</ui:UXML>";
-        
+
+        //Go Through Classes looking for GenerateUXML
+        //================================================================================================================//
+
         [UnityEditor.Callbacks.DidReloadScripts]
         private static void OnScriptsReloaded() {
             //Based on: https://stackoverflow.com/a/607204
@@ -66,6 +69,9 @@ namespace Editor
             
             AssetDatabase.Refresh();
         }
+        
+        //Generate UXML
+        //================================================================================================================//
 
         private static string GetUXML(in Type type)
         {
@@ -80,8 +86,11 @@ namespace Editor
             {
                 if(fields[i].IsPrivate && fields[i].GetCustomAttributes(typeof(SerializeField), false).Length == 0)
                     continue;
+                var prefix = RepeatString(indentCount, "\t");
                 
-                sb.AppendLine(RepeatString(indentCount, "\t") + GetFieldAsUXML(fields[i]));
+                sb.AppendLine(prefix);
+
+                GetFieldAsUXML(fields[i], ref sb);
             }
 
             sb.AppendLine(CLOSER);
@@ -89,15 +98,48 @@ namespace Editor
             return sb.ToString();
         }
 
-        private static string GetFieldAsUXML(in FieldInfo fieldInfo)
+        private static void GetFieldAsUXML(in FieldInfo fieldInfo, ref StringBuilder stringBuilder)
         {
-            string uieType;
-            var fieldName = fieldInfo.Name;
-            var label = fieldName;
+            //----------------------------------------------------------//
 
+            string GetReadonlyString(in bool readOnly)
+            {
+                return (readOnly ? "focusable=\"false\" readonly=\"true\" style=\"opacity: 0.5;\"" : string.Empty);
+            }
+            
+            //----------------------------------------------------------//
+
+            var customLabel = fieldInfo.GetCustomAttribute<CustomLabel>();
+            var readOnly = fieldInfo.GetCustomAttribute<ReadOnly>() != null;
+
+            string uieType;
+            var label = customLabel != null ? customLabel.GetText() : fieldInfo.Name;
+            
+            //Checks if the object needs a field type, if so, next steps aren't required
             if (fieldInfo.FieldType.IsClass && fieldInfo.FieldType.Namespace.Equals("UnityEngine"))
             {
-                return $"<uie:ObjectField label=\"Object Field\" type=\"{fieldInfo.FieldType.FullName}, UnityEngine.CoreModule\" />";
+                stringBuilder.Append( $"<uie:ObjectField label=\"{label}\" type=\"{fieldInfo.FieldType.FullName}, UnityEngine.CoreModule\" {GetReadonlyString(readOnly)}/>");
+                return;
+            }
+            
+            //FIXME This is dependent on access to the object instance, and may not work the way I was hoping
+            var displayAsString = fieldInfo.GetCustomAttribute<DisplayAsString>() != null;
+            if (displayAsString)
+            {
+                /*
+                 *
+                    <ui:GroupBox style="justify-content: flex-start; flex-direction: row; align-items: auto;">
+                        <ui:Label text="Label" display-tooltip-when-elided="true" />
+                        <ui:Label text="Label" display-tooltip-when-elided="true" />
+                    </ui:GroupBox>
+                 */
+                stringBuilder.AppendLine("<ui:GroupBox style=\"justify-content: flex-start; flex-direction: row; align-items: auto; margin-top: 1px; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0;\">");
+                stringBuilder.AppendLine($"\t<ui:Label text=\"{label}\" display-tooltip-when-elided=\"true\" />");
+                stringBuilder.AppendLine($"\t<ui:Label text=\"\" binding-path=\"{fieldInfo.Name}\" display-tooltip-when-elided=\"true\" />");
+                stringBuilder.AppendLine("</ui:GroupBox>");
+                
+                //<ui:Label text="Label" display-tooltip-when-elided="true" />
+                return;
             }
             
             switch (fieldInfo.FieldType.Name)
@@ -125,8 +167,10 @@ namespace Editor
                 
             }
 
-            return $"<uie:{uieType} label=\"{label}\" value=\"\" binding-path=\"{fieldInfo.Name}\" />";
+            stringBuilder.Append($"<uie:{uieType} label=\"{label}\" value=\"\" binding-path=\"{fieldInfo.Name}\" {GetReadonlyString(readOnly)} />");
         }
+
+        //================================================================================================================//
 
         //FIXME This needs to be more performant
         private static string RepeatString(in int count, in string toRepeat)

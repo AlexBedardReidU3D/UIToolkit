@@ -1,14 +1,19 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
-	<uie:IntegerField label="myInt" value="" binding-path="myInt" />
-	<uie:FloatField label="m_MyFloat" value="" binding-path="m_MyFloat" />
-	<uie:LongField label="myLong" value="" binding-path="myLong" />
-	<uie:Vector2Field label="myV2" value="" binding-path="myV2" />
-	<uie:Vector3Field label="myV3" value="" binding-path="myV3" />
-	<uie:Vector4Field label="myV4" value="" binding-path="myV4" />
-	<uie:RectField label="myRect" value="" binding-path="myRect" />
-	<uie:BoundsField label="myBounds" value="" binding-path="myBounds" />
-	<uie:Vector2IntField label="myV2Int" value="" binding-path="myV2Int" />
-	<uie:Vector3IntField label="myV3Int" value="" binding-path="myV3Int" />
-	<uie:ObjectField label="Object Field" type="UnityEngine.Texture2D, UnityEngine.CoreModule" />
-	<uie:ObjectField label="Object Field" type="UnityEngine.GameObject, UnityEngine.CoreModule" />
-</ui:UXML>
+	
+<uie:IntegerField label="Label 1" value="" binding-path="myInt" focusable="false" readonly="true" style="opacity: 0.5;" />	
+<ui:GroupBox style="justify-content: flex-start; flex-direction: row; align-items: auto; margin-top: 1px; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0;">
+	<ui:Label text="My Number" display-tooltip-when-elided="true" />
+	<ui:Label text="" binding-path="myInt2" display-tooltip-when-elided="true" />
+</ui:GroupBox>
+	
+<uie:FloatField label="Label 2" value="" binding-path="m_MyFloat"  />	
+<uie:LongField label="myLong" value="" binding-path="myLong"  />	
+<uie:Vector2Field label="myV2" value="" binding-path="myV2"  />	
+<uie:Vector3Field label="myV3" value="" binding-path="myV3"  />	
+<uie:Vector4Field label="myV4" value="" binding-path="myV4"  />	
+<uie:RectField label="myRect" value="" binding-path="myRect"  />	
+<uie:BoundsField label="myBounds" value="" binding-path="myBounds"  />	
+<uie:Vector2IntField label="myV2Int" value="" binding-path="myV2Int"  />	
+<uie:Vector3IntField label="myV3Int" value="" binding-path="myV3Int"  />	
+<uie:ObjectField label="myTexture" type="UnityEngine.Texture2D, UnityEngine.CoreModule" />	
+<uie:ObjectField label="myGameObject" type="UnityEngine.GameObject, UnityEngine.CoreModule" focusable="false" readonly="true" style="opacity: 0.5;"/></ui:UXML>

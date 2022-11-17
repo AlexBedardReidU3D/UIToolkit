@@ -450,6 +450,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   myInt: 0
+  myInt2: 1234567890
   m_MyFloat: 0
   myLong: 0
   myV2: {x: 0, y: 0}

@@ -16,6 +16,21 @@ public class CustomLabel : System.Attribute
     public string GetText() => m_Text;
 }  
 
+[System.AttributeUsage(System.AttributeTargets.Field)]  
+public class ReadOnly : System.Attribute  
+{  
+    public ReadOnly()  
+    {  
+    }
+} 
+[System.AttributeUsage(System.AttributeTargets.Field)]  
+public class DisplayAsString : System.Attribute  
+{  
+    public DisplayAsString()  
+    {  
+    }
+} 
+
 [System.AttributeUsage(System.AttributeTargets.Class | AttributeTargets.Struct)]  
 public class GenerateUXML : System.Attribute  
 {  
