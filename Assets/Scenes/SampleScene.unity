@@ -452,20 +452,19 @@ MonoBehaviour:
   myInt: 0
   myInt2: 1234567890
   m_MyFloat: 0
+  intArray: 00000000
+  intList: 00000000
+  myStructList:
+  - test: 0
+  - test: -8
+  myPropertyTestList:
+  - test: 0
+  myGameObject: {fileID: 0}
+  myStruct:
+    test: 0
+  myPropertyTest:
+    test: 0
   myLong: 0
   myV2: {x: 0, y: 0}
   myV3: {x: 0, y: 0, z: 0}
   myV4: {x: 0, y: 0, z: 0, w: 0}
-  myRect:
-    serializedVersion: 2
-    x: 0
-    y: 0
-    width: 0
-    height: 0
-  myBounds:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  myV2Int: {x: 0, y: 0}
-  myV3Int: {x: 0, y: 0, z: 0}
-  myTexture: {fileID: 0}
-  myGameObject: {fileID: 0}

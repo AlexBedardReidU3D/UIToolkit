@@ -16,6 +16,7 @@
     <uie:Vector3IntField label="Vector3Int" />
     <uie:RectIntField label="RectInt" />
     <uie:BoundsIntField label="BoundsInt" />
+    <ui:Button text="Button" display-tooltip-when-elided="true" />
     <uie:ObjectField label="Object Field" type="UnityEngine.Texture2D, UnityEngine.CoreModule" />
     <ui:Foldout text="Foldout">
         <ui:Label text="Label" display-tooltip-when-elided="true" />

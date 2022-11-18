@@ -92,14 +92,27 @@ namespace Editor.Utilities.FileWriters
             writer.WriteLine("<ui:UXML xmlns:ui=\"UnityEngine.UIElements\" xmlns:uie=\"UnityEditor.UIElements\" editor-extension-mode=\"True\">");
             writer.BeginBlock();
             
-            var fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-
-            for (int i = 0; i < fields.Length; i++)
+            var memberInfos = type.GetMembers(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            memberInfos = memberInfos
+                .OrderBy(x => x.MetadataToken)
+                .ToArray();
+            
+            for (int i = 0; i < memberInfos.Length; i++)
             {
-                if(fields[i].IsPrivate && fields[i].GetCustomAttributes(typeof(SerializeField), false).Length == 0)
-                    continue;
-                //Write fields
-                GetFieldAsUXML(writer, fields[i]);
+                switch (memberInfos[i])
+                {
+                    case ConstructorInfo _:
+                        continue;
+                    case FieldInfo fieldInfo:
+                        if(fieldInfo.IsPrivate && fieldInfo.GetCustomAttributes(typeof(SerializeField), false).Length == 0)
+                            continue;
+                        //Write fields
+                        GetFieldAsUXML(writer, fieldInfo);
+                        break;
+                    case MethodInfo methodInfo:
+                        GetMethodAsUxml(methodInfo, ref writer);
+                        break;
+                }
             }
 
             //End Field Block
@@ -189,6 +202,21 @@ namespace Editor.Utilities.FileWriters
             //----------------------------------------------------------//
 
             writer.WriteLine($"<uie:{uieType} label=\"{label}\" value=\"\" binding-path=\"{fieldInfo.Name}\" {GetReadonlyString(readOnly)} />");
+        }
+
+        private static void GetMethodAsUxml(in MethodInfo methodInfo, ref UXMLWriter writer)
+        {
+            var button = methodInfo.GetCustomAttribute<Button>();
+
+            if (button == null)
+                return;
+
+            var buttonText = button.GetText();
+
+            var label = string.IsNullOrEmpty(buttonText) ? methodInfo.Name : buttonText;
+            
+            //FIXME Binding Path gets a string for the label, and is not the call for the method
+            writer.WriteLine($"<ui:Button text=\"{label}\" binding-path=\"{methodInfo.Name}\" display-tooltip-when-elided=\"true\" />");
         }
 
         //================================================================================================================//
