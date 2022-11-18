@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using UnityEngine;
 using Microsoft.CodeAnalysis;
@@ -37,11 +39,15 @@ namespace Editor
             "<ui:UXML xmlns:ui=\"UnityEngine.UIElements\" xmlns:uie=\"UnityEditor.UIElements\" editor-extension-mode=\"True\">";
         private static readonly string CLOSER = "</ui:UXML>";
 
+
         //Go Through Classes looking for GenerateUXML
         //================================================================================================================//
 
         [UnityEditor.Callbacks.DidReloadScripts]
-        private static void OnScriptsReloaded() {
+        private static void OnScriptsReloaded() 
+        {
+           
+            
             //Based on: https://stackoverflow.com/a/607204
             var typesWithMyAttribute =
                 from a in AppDomain.CurrentDomain.GetAssemblies()
@@ -90,7 +96,7 @@ namespace Editor
                 
                 sb.AppendLine(prefix);
 
-                GetFieldAsUXML(fields[i], ref sb);
+                GetFieldAsUXML(fields[i], sb);
             }
 
             sb.AppendLine(CLOSER);
@@ -98,50 +104,54 @@ namespace Editor
             return sb.ToString();
         }
 
-        private static void GetFieldAsUXML(in FieldInfo fieldInfo, ref StringBuilder stringBuilder)
+        private static void GetFieldAsUXML(in FieldInfo fieldInfo, StringBuilder stringBuilder)
         {
-            //----------------------------------------------------------//
-
-            string GetReadonlyString(in bool readOnly)
-            {
-                return (readOnly ? "focusable=\"false\" readonly=\"true\" style=\"opacity: 0.5;\"" : string.Empty);
-            }
-            
-            //----------------------------------------------------------//
-
             var customLabel = fieldInfo.GetCustomAttribute<CustomLabel>();
             var readOnly = fieldInfo.GetCustomAttribute<ReadOnly>() != null;
-
-            string uieType;
-            var label = customLabel != null ? customLabel.GetText() : fieldInfo.Name;
-            
-            //Checks if the object needs a field type, if so, next steps aren't required
-            if (fieldInfo.FieldType.IsClass && fieldInfo.FieldType.Namespace.Equals("UnityEngine"))
-            {
-                stringBuilder.Append( $"<uie:ObjectField label=\"{label}\" type=\"{fieldInfo.FieldType.FullName}, UnityEngine.CoreModule\" {GetReadonlyString(readOnly)}/>");
-                return;
-            }
-            
-            //FIXME This is dependent on access to the object instance, and may not work the way I was hoping
             var displayAsString = fieldInfo.GetCustomAttribute<DisplayAsString>() != null;
+
+            var label = customLabel != null ? customLabel.GetText() : fieldInfo.Name;
+
+            //Display As String
+            //----------------------------------------------------------//
+
             if (displayAsString)
             {
-                /*
-                 *
-                    <ui:GroupBox style="justify-content: flex-start; flex-direction: row; align-items: auto;">
-                        <ui:Label text="Label" display-tooltip-when-elided="true" />
-                        <ui:Label text="Label" display-tooltip-when-elided="true" />
-                    </ui:GroupBox>
-                 */
-                stringBuilder.AppendLine("<ui:GroupBox style=\"justify-content: flex-start; flex-direction: row; align-items: auto; margin-top: 1px; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0;\">");
-                stringBuilder.AppendLine($"\t<ui:Label text=\"{label}\" display-tooltip-when-elided=\"true\" />");
-                stringBuilder.AppendLine($"\t<ui:Label text=\"\" binding-path=\"{fieldInfo.Name}\" display-tooltip-when-elided=\"true\" />");
-                stringBuilder.AppendLine("</ui:GroupBox>");
-                
-                //<ui:Label text="Label" display-tooltip-when-elided="true" />
+                DisplayAsString(stringBuilder, label, fieldInfo);
                 return;
             }
-            
+
+            var hasCustomEditor = fieldInfo.FieldType.HasCustomEditor();
+
+            //Custom Editor Drawer, for non-unity objects
+            //----------------------------------------------------------//
+            if(hasCustomEditor && fieldInfo.FieldType.IsSubclassOf(typeof(UnityEngine.Object)) == false)
+            {
+                BeginFoldoutGroup(stringBuilder, label);
+                    stringBuilder.AppendLine($"<uie:PropertyField binding-path=\"{fieldInfo.Name}\" label=\"{label}\" />");
+                EndFoldoutGroup(stringBuilder);
+                return;
+            }
+
+            //Class Drawing
+            //----------------------------------------------------------//
+
+            if (fieldInfo.FieldType.IsClass)
+            {
+                switch (fieldInfo.FieldType.Namespace)
+                {
+                    case "UnityEngine":
+                        stringBuilder.AppendLine( $"<uie:ObjectField binding-path=\"{fieldInfo.Name}\" label=\"{label}\" type=\"{fieldInfo.FieldType.FullName}, UnityEngine.CoreModule\" {GetReadonlyString(readOnly)}/>");
+                        return;
+                    default:
+                        stringBuilder.AppendLine($"<uie:PropertyField binding-path=\"{fieldInfo.Name}\" label=\"{label}\" />");
+                        return;
+                }
+            }
+            //Value Type
+            //----------------------------------------------------------//
+
+            string uieType;
             switch (fieldInfo.FieldType.Name)
             {
                 case nameof(Int32):
@@ -163,11 +173,15 @@ namespace Editor
                     uieType = $"{fieldInfo.FieldType.Name}Field";
                     break;
                 default:
-                    throw new NotImplementedException();
+                    stringBuilder.AppendLine($"<uie:PropertyField binding-path=\"{fieldInfo.Name}\" label=\"{label}\" />");
+                    return;
                 
             }
 
-            stringBuilder.Append($"<uie:{uieType} label=\"{label}\" value=\"\" binding-path=\"{fieldInfo.Name}\" {GetReadonlyString(readOnly)} />");
+            //Default Return
+            //----------------------------------------------------------//
+
+            stringBuilder.AppendLine($"<uie:{uieType} label=\"{label}\" value=\"\" binding-path=\"{fieldInfo.Name}\" {GetReadonlyString(readOnly)} />");
         }
 
         //================================================================================================================//
@@ -184,5 +198,39 @@ namespace Editor
 
             return outString;
         }
+
+        //FIXME This can likely go in its own script/extension
+        //================================================================================================================//
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void BeginFoldoutGroup(StringBuilder sb, in string text)
+        {
+            sb.AppendLine($"<ui:Foldout text=\"{text}\">");
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void EndFoldoutGroup(StringBuilder sb) => sb.AppendLine("</ui:Foldout>");
+        private static void DisplayAsString(StringBuilder stringBuilder, in string label, in FieldInfo fieldInfo)
+        {
+            //Example of a horizontal layout group used with 2 labels
+            /*
+                <ui:GroupBox style="justify-content: flex-start; flex-direction: row; align-items: auto;">
+                    <ui:Label text="Label" display-tooltip-when-elided="true" />
+                    <ui:Label text="Label" display-tooltip-when-elided="true" />
+                </ui:GroupBox>
+             */
+            stringBuilder.AppendLine("<ui:GroupBox style=\"justify-content: flex-start; flex-direction: row; align-items: auto; margin-top: 1px; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0;\">");
+                stringBuilder.AppendLine($"\t<ui:Label text=\"{label}\" display-tooltip-when-elided=\"true\" />");
+                stringBuilder.AppendLine($"\t<ui:Label text=\"\" binding-path=\"{fieldInfo.Name}\" display-tooltip-when-elided=\"true\" />");
+            stringBuilder.AppendLine("</ui:GroupBox>");
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static string GetReadonlyString(in bool readOnly)
+        {
+            return (readOnly ? "focusable=\"false\" readonly=\"true\" style=\"opacity: 0.5;\"" : string.Empty);
+        }
+        
+        //================================================================================================================//
+
+        
     }
 }

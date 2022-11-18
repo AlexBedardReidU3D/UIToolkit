@@ -24,6 +24,10 @@ public class MyClass : MonoBehaviour
     public Texture2D myTexture;
     [ReadOnly]
     public GameObject myGameObject;
+
+    public MyStruct myStruct;
+    
+    public MyPropertyTest myPropertyTest;
     
     // Start is called before the first frame update
     void Start()
