@@ -58,13 +58,15 @@ namespace Editor
 
             foreach (var value in typesWithMyAttribute)
             {
-
+                var type = value.Type;
                 try
                 {
-                    var filePath = Path.Combine(PATH, $"{value.Type.Name}UXML.uxml");
-                    File.WriteAllText(filePath, GetUXML(value.Type));
+                    ScriptGenerator.TryCreateCustomEditor(type);
+
+                    var filePath = Path.Combine(PATH, $"{type.Name}UXML.uxml");
+                    File.WriteAllText(filePath, GetUXML(type));
                     
-                    Debug.Log($"Successfully Generated UXML for {value.Type.Name}");
+                    Debug.Log($"Successfully Generated UXML for {type.Name}");
                 }
                 catch (Exception e)
                 {
@@ -81,6 +83,7 @@ namespace Editor
 
         private static string GetUXML(in Type type)
         {
+            
             var sb = new StringBuilder();
             sb.AppendLine(OPENER);
             
