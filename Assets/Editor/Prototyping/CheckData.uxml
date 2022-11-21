@@ -3,7 +3,7 @@
         <ui:Label text="Label" display-tooltip-when-elided="true" />
         <ui:Label text="Label" display-tooltip-when-elided="true" />
     </ui:GroupBox>
-    <ui:TextField picking-mode="Ignore" label="Text Field" value="filler text" text="filler text" binding-path="bind_1" readonly="true" usage-hints="None" />
+    <ui:TextField picking-mode="Ignore" label="Text Field" value="filler text" text="filler text" binding-path="bind_1" readonly="true" usage-hints="None" name="testName" />
     <uie:IntegerField label="Int Field" value="42" binding-path="bind_2" focusable="false" readonly="false" style="opacity: 0.5; visibility: visible;" />
     <uie:FloatField label="Float Field" value="42.2" binding-path="bind_3" focusable="true" readonly="false" />
     <uie:LongField label="Long Field" value="42" binding-path="bind_4" />

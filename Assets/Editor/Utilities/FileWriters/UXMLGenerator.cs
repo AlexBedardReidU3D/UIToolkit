@@ -31,6 +31,8 @@ namespace Editor.Utilities.FileWriters
             
         }
 
+        private static Dictionary<Type, List<MethodInfo>> s_ButtonFunctions;
+
         [UnityEditor.Callbacks.DidReloadScripts]
         private static void OnScriptsReloaded() 
         {
@@ -50,12 +52,16 @@ namespace Editor.Utilities.FileWriters
             //Based on: https://stackoverflow.com/a/607204
             var typesWithGenerateUxml = GetTypeAttributes();
 
+            s_ButtonFunctions = new Dictionary<Type, List<MethodInfo>>();
+
             for (int i = 0; i < typesWithGenerateUxml.Length; i++)
             {
                 var type = typesWithGenerateUxml[i].myType;
                 
-                ScriptGenerator.TryCreateCustomEditor(type);
+                s_ButtonFunctions.Add(type, new List<MethodInfo>());
+                
                 TryCreateUxmlFile(type);
+                ScriptGenerator.TryCreateCustomEditor(type, s_ButtonFunctions[type]);
             }
 
             AssetDatabase.Refresh();
@@ -63,7 +69,12 @@ namespace Editor.Utilities.FileWriters
 
         private static void TryCreateUxmlFile(in Type type)
         {
-            var filePath = Path.Combine(PATH, $"{type.Name}UXML.uxml");
+            DirectoryInfo directoryInfo = new DirectoryInfo(Path.Combine(Application.dataPath, "Editor", "Custom Inspectors", type.Name));
+            
+            if(directoryInfo.Exists == false)
+                directoryInfo.Create();
+            
+            var filePath = Path.Combine(PATH, type.Name, $"{type.Name}UXML.uxml");
             File.WriteAllText(filePath, GetUXMLCode(type));
             
             Debug.Log($"Successfully Generated UXML for {type.Name}");
@@ -110,7 +121,7 @@ namespace Editor.Utilities.FileWriters
                         GetFieldAsUXML(writer, fieldInfo);
                         break;
                     case MethodInfo methodInfo:
-                        GetMethodAsUxml(methodInfo, ref writer);
+                        GetMethodAsUxml(type, methodInfo, ref writer);
                         break;
                 }
             }
@@ -204,19 +215,21 @@ namespace Editor.Utilities.FileWriters
             writer.WriteLine($"<uie:{uieType} label=\"{label}\" value=\"\" binding-path=\"{fieldInfo.Name}\" {GetReadonlyString(readOnly)} />");
         }
 
-        private static void GetMethodAsUxml(in MethodInfo methodInfo, ref UXMLWriter writer)
+        private static void GetMethodAsUxml(in Type type, in MethodInfo methodInfo, ref UXMLWriter writer)
         {
             var button = methodInfo.GetCustomAttribute<Button>();
 
             if (button == null)
                 return;
 
+            s_ButtonFunctions[type].Add(methodInfo);
+
             var buttonText = button.GetText();
 
             var label = string.IsNullOrEmpty(buttonText) ? methodInfo.Name : buttonText;
             
             //FIXME Binding Path gets a string for the label, and is not the call for the method
-            writer.WriteLine($"<ui:Button text=\"{label}\" binding-path=\"{methodInfo.Name}\" display-tooltip-when-elided=\"true\" />");
+            writer.WriteLine($"<ui:Button name=\"{methodInfo.Name}\" text=\"{label}\" display-tooltip-when-elided=\"true\" />");
         }
 
         //================================================================================================================//

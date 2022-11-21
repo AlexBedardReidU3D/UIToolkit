@@ -23,6 +23,12 @@ namespace Editor.Utilities.FileWriters
             WriteIndent();
             buffer.Append("}\n");
         }
+        public void EndBlock(in char addChar)
+        {
+            --indentLevel;
+            WriteIndent();
+            buffer.Append("}" + addChar + "\n");
+        }
 
         public void WriteLine()
         {

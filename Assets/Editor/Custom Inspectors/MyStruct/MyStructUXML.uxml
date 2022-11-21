@@ -12,4 +12,5 @@
 
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
     <uie:IntegerField label="test" value="" binding-path="test"  />
+    <ui:Button name="TestButton" text="TestButton" display-tooltip-when-elided="true" />
 </ui:UXML>

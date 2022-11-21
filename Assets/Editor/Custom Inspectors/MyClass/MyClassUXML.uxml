@@ -30,6 +30,6 @@
     <uie:Vector2Field label="myV2" value="" binding-path="myV2"  />
     <uie:Vector3Field label="myV3" value="" binding-path="myV3"  />
     <uie:Vector4Field label="myV4" value="" binding-path="myV4"  />
-    <ui:Button text="TestButton" binding-path="TestButton" display-tooltip-when-elided="true" />
-    <ui:Button text="My Custom Button" binding-path="TestButton2" display-tooltip-when-elided="true" />
+    <ui:Button name="TestButton" text="TestButton" display-tooltip-when-elided="true" />
+    <ui:Button name="TestButton2" text="My Custom Button" display-tooltip-when-elided="true" />
 </ui:UXML>
