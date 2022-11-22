@@ -1,4 +1,5 @@
 ﻿using System;
+using Attributes;
 using UnityEngine;
 
 [Serializable, GenerateUXML]

@@ -5,8 +5,12 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Attributes;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.Experimental.GraphView;
+using UnityEngine.UIElements;
+using Button = Attributes.Button;
 
 namespace Editor.Utilities.FileWriters
 {
@@ -15,7 +19,7 @@ namespace Editor.Utilities.FileWriters
     {
         private static readonly string PATH = Path.Combine(Application.dataPath, "Editor", "Custom Inspectors");
         
-        //Go Through Classes looking for GenerateUXML
+        //Structs
         //================================================================================================================//
         
         private readonly struct TypeAttributes
@@ -30,8 +34,19 @@ namespace Editor.Utilities.FileWriters
             }
             
         }
+        
+        private class MemberGroupInfo
+        {
+            public GroupsBase GroupsBase;
+            public List<object> Objects;
+        }
+        
+        //Static Properties
+        //================================================================================================================//
 
         private static Dictionary<Type, List<MethodInfo>> s_ButtonFunctions;
+       
+        //================================================================================================================//
 
         [UnityEditor.Callbacks.DidReloadScripts]
         private static void OnScriptsReloaded() 
@@ -80,7 +95,6 @@ namespace Editor.Utilities.FileWriters
             Debug.Log($"Successfully Generated UXML for {type.Name}");
         }
         
-        
         //Generate UXML
         //================================================================================================================//
 
@@ -102,18 +116,24 @@ namespace Editor.Utilities.FileWriters
             //Write UXML starter
             writer.WriteLine("<ui:UXML xmlns:ui=\"UnityEngine.UIElements\" xmlns:uie=\"UnityEditor.UIElements\" editor-extension-mode=\"True\">");
             writer.BeginBlock();
-            
-            var memberInfos = type.GetMembers(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            memberInfos = memberInfos
+            //Add custom Style Sheet
+            writer.WriteLine("<Style src=\"project://database/Assets/Editor/Prototyping/NewUSSFile.uss?fileID=7433441132597879392&amp;guid=6900da3c74504df48882b65fbc801786&amp;type=3#NewUSSFile\" />");
+            //Get type members that are not constructors, ordered by their metadata token
+            var memberInfos = type.GetMembers(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                .Where(x => (x is ConstructorInfo) == false)
                 .OrderBy(x => x.MetadataToken)
                 .ToArray();
+
+            //Group members together by the specified header name
+            var groupedMembers = TryGetGroupedMembers(memberInfos);
             
-            for (int i = 0; i < memberInfos.Length; i++)
+            for (var i = 0; i < groupedMembers.Count; i++)
             {
-                switch (memberInfos[i])
+                switch (groupedMembers[i])
                 {
-                    case ConstructorInfo _:
-                        continue;
+                    case MemberGroupInfo memberGroupInfo:
+                        GetGroupUXML(type, writer, memberGroupInfo);
+                        break;
                     case FieldInfo fieldInfo:
                         if(fieldInfo.IsPrivate && fieldInfo.GetCustomAttributes(typeof(SerializeField), false).Length == 0)
                             continue;
@@ -137,11 +157,17 @@ namespace Editor.Utilities.FileWriters
 
         private static void GetFieldAsUXML(UXMLWriter writer, in FieldInfo fieldInfo)
         {
+            var infoBox = fieldInfo.GetCustomAttribute<InfoBox>();
             var customLabel = fieldInfo.GetCustomAttribute<CustomLabel>();
             var readOnly = fieldInfo.GetCustomAttribute<ReadOnly>() != null;
             var displayAsString = fieldInfo.GetCustomAttribute<DisplayAsString>() != null;
 
             var label = customLabel != null ? customLabel.GetText() : fieldInfo.Name;
+
+            if (infoBox != null)
+            {
+                AddInfoBox(writer, infoBox);
+            }
 
             //Display As String
             //----------------------------------------------------------//
@@ -221,6 +247,12 @@ namespace Editor.Utilities.FileWriters
 
             if (button == null)
                 return;
+            
+            var infoBox = methodInfo.GetCustomAttribute<InfoBox>();
+            if (infoBox != null)
+            {
+                AddInfoBox(writer, infoBox);
+            }
 
             s_ButtonFunctions[type].Add(methodInfo);
 
@@ -232,7 +264,161 @@ namespace Editor.Utilities.FileWriters
             writer.WriteLine($"<ui:Button name=\"{methodInfo.Name}\" text=\"{label}\" display-tooltip-when-elided=\"true\" />");
         }
 
+        //UXML Group Functions
         //================================================================================================================//
+
+        private static List<object> TryGetGroupedMembers(MemberInfo[] memberInfos)
+        {
+            var outList = new List<object>();
+            var groupKeys = new Dictionary<string, MemberGroupInfo>();
+            //var groupedMembers = new Dictionary<GroupsBase, List<object>>();
+            
+            for (int i = 0; i < memberInfos.Length; i++)
+            {
+                //Don't want to store the constructor
+                if(memberInfos[i] is ConstructorInfo)
+                    continue;
+                
+                //Check to see if we want to use a group for this member
+                var groupsBase = memberInfos[i].GetCustomAttribute<GroupsBase>();
+
+                //If there's no group, store it so we can retain the order
+                if (groupsBase == null)
+                {
+                    outList.Add(memberInfos[i]);
+                    continue;
+                }
+
+                //Look at the groups path, to see if it's a sub-group
+                var groups = groupsBase.GetPath().Split('/');
+
+                //FIXME For not, we are ignoring the sub-groups, as they still needs to be designed
+                if (groups.Length > 1)
+                {
+                    //TODO Go through each layer
+                    throw new NotImplementedException("Layered groups are not yet supported");
+                }
+                else
+                {
+                    //Get the group name, this is used to group elements together
+                    var groupName = groupsBase.GetName();
+                    
+                    //See if we've already created the group, if not we'll have to add it
+                    if (groupKeys.TryGetValue(groupName, out var foundGroup) == false)
+                    {
+                        var groupData = new MemberGroupInfo
+                        {
+                            GroupsBase = groupsBase,
+                            Objects = new List<object>
+                            {
+                                memberInfos[i]
+                            }
+                        };
+                        
+                        groupKeys.Add(groupName, groupData);
+                        outList.Add(groupData);
+                    }
+                    else
+                    {
+                        if (groupsBase.GetType() != foundGroup.GroupsBase.GetType())
+                        {
+                            throw new Exception($"Group {groupName} Cannot use {groupsBase.GetType()} as it already exists as {foundGroup.GroupsBase.GetType()}");
+                        }
+
+                        foundGroup.Objects.Add(memberInfos[i]);
+                    }
+
+                }
+                
+            }
+
+            return outList;
+        }
+
+        private static void GetGroupUXML(in Type type, UXMLWriter writer, in MemberGroupInfo memberGroupInfo)
+        {
+            BeginGroup(memberGroupInfo.GroupsBase, writer);
+            foreach (var memberObject in memberGroupInfo.Objects)
+            {
+                switch (memberObject)
+                {
+                    case FieldInfo fieldInfo:
+                        if(fieldInfo.IsPrivate && fieldInfo.GetCustomAttributes(typeof(SerializeField), false).Length == 0)
+                            continue;
+                        //Write fields
+                        GetFieldAsUXML(writer, fieldInfo);
+                        break;
+                    case MethodInfo methodInfo:
+                        GetMethodAsUxml(type, methodInfo, ref writer);
+                        break;
+                    case MemberGroupInfo _:
+                        throw new NotImplementedException("Sub groups are not yet supported");
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(memberObject), memberObject, null);
+                }
+            }
+            EndGroup(memberGroupInfo.GroupsBase, writer);
+        }
+
+        private static void BeginGroup(in GroupsBase groupsBase, UXMLWriter writer)
+        {
+            switch (groupsBase)
+            {
+                case VerticalLayoutGroup _:
+                    writer.WriteLine($"<ui:GroupBox name=\"{groupsBase.GetName()}\">");
+                    break;
+                case HorizontalLayoutGroup _:
+                    writer.WriteLine($"<ui:GroupBox name=\"{groupsBase.GetName()}\" style=\"flex-direction: row; justify-content: space-around;\" />");
+                    break;
+                case TitleGroup titleGroup:
+                    var textAttributes = titleGroup.noUnderline ? "" : "&lt;u&gt;";
+                    
+                    writer.WriteLine($"<ui:GroupBox name=\"{{groupsBase.GetName()}}\" text=\"{textAttributes}{titleGroup.GetLabel()}\" class=\"title-group\">");
+                    break;
+                case FoldoutGroup foldoutGroup:
+                    writer.WriteLine($"<ui:Foldout name=\"{groupsBase.GetName()}\" text=\"{foldoutGroup.GetLabel()}\" value=\"true\" class=\"foldout-group\">");
+                    break;
+                case BoxGroup boxGroup:
+                    writer.WriteLine($"<ui:GroupBox name=\"{groupsBase.GetName()}\" text=\"{boxGroup.GetLabel()}\" class=\"box-group\">");
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+            
+            writer.BeginBlock();
+
+        }
+        private static void EndGroup(in GroupsBase groupsBase, UXMLWriter writer)
+        {
+            writer.EndBlock();
+            switch (groupsBase)
+            {
+                case VerticalLayoutGroup _:
+                case HorizontalLayoutGroup _:
+                case TitleGroup _:
+                case BoxGroup _:
+                    writer.WriteLine("</ui:GroupBox>");
+                    break;
+                case FoldoutGroup _ :
+                    writer.WriteLine("</ui:Foldout>");
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+        
+        //================================================================================================================//
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void AddInfoBox(UXMLWriter writer, in InfoBox infoBox)
+        {
+            writer.WriteLine("<ui:GroupBox class=\"info-box\">");
+            writer.BeginBlock();
+            writer.WriteLine("<ui:VisualElement />");
+            writer.WriteLine($"<ui:Label text=\"{infoBox.InfoText}\" display-tooltip-when-elided=\"true\" />");
+            writer.EndBlock();
+            writer.WriteLine("</ui:GroupBox>");
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void BeginFoldoutGroup(ref UXMLWriter writer, in string text)

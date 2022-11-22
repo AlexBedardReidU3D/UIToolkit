@@ -10,12 +10,14 @@ namespace Editor.Utilities.FileWriters
 {
     public static class ScriptGenerator
     {
+        private static readonly string PATH = Path.Combine(Application.dataPath, "Editor", "Custom Inspectors");
+        
         //ScriptGenerator Functions
         //================================================================================================================//
 
         public static void TryCreateCustomEditor(in Type type, in IEnumerable<MethodInfo> buttons)
         {
-            DirectoryInfo directoryInfo = new DirectoryInfo(Path.Combine(Application.dataPath, "Editor", "Custom Inspectors", type.Name));
+            DirectoryInfo directoryInfo = new DirectoryInfo(Path.Combine(PATH, type.Name));
             
             if(directoryInfo.Exists == false)
                 directoryInfo.Create();

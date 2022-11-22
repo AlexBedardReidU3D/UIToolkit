@@ -32,18 +32,18 @@ public class @MyClassCustomInspector : UnityEditor.Editor
 
         var classType = MyClassInstance.GetType();
 
-        //TestButton Action Callback
-        var TestButtonMethod = classType.GetMethod("TestButton", BindingFlags.NonPublic | BindingFlags.Instance);
-        myInspector.Q<UnityEngine.UIElements.Button>("TestButton").clickable.clicked += () =>
-        {
-            TestButtonMethod.Invoke(MyClassInstance, default);
-        };
-
         //TestButton2 Action Callback
         var TestButton2Method = classType.GetMethod("TestButton2", BindingFlags.NonPublic | BindingFlags.Instance);
         myInspector.Q<UnityEngine.UIElements.Button>("TestButton2").clickable.clicked += () =>
         {
             TestButton2Method.Invoke(MyClassInstance, default);
+        };
+
+        //TestButton Action Callback
+        var TestButtonMethod = classType.GetMethod("TestButton", BindingFlags.NonPublic | BindingFlags.Instance);
+        myInspector.Q<UnityEngine.UIElements.Button>("TestButton").clickable.clicked += () =>
+        {
+            TestButtonMethod.Invoke(MyClassInstance, default);
         };
 
         //----------------------------------------------------------//

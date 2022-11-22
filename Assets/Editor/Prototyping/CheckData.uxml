@@ -1,25 +1,25 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
-    <ui:GroupBox style="justify-content: flex-start; flex-direction: row; align-items: auto; margin-top: 1px; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0;">
-        <ui:Label text="Label" display-tooltip-when-elided="true" />
-        <ui:Label text="Label" display-tooltip-when-elided="true" />
+    <Style src="project://database/Assets/Editor/Styles/UXMLStyles.uss?fileID=7433441132597879392&amp;guid=6900da3c74504df48882b65fbc801786&amp;type=3#UXMLStyles" />
+    <ui:GroupBox style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-top-left-radius: 2px; border-bottom-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-left-color: rgb(46, 46, 46); border-right-color: rgb(46, 46, 46); border-top-color: rgb(46, 46, 46); border-bottom-color: rgb(46, 46, 46); margin-left: 5px; margin-right: 5px; margin-top: 5px; margin-bottom: 5px; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0;">
+        <ui:Label text="Label" display-tooltip-when-elided="true" style="background-color: rgb(125, 125, 125); margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;" />
+        <uie:IntegerField label="Int Field" value="42" />
+        <uie:IntegerField label="Int Field" value="42" />
     </ui:GroupBox>
-    <ui:TextField picking-mode="Ignore" label="Text Field" value="filler text" text="filler text" binding-path="bind_1" readonly="true" usage-hints="None" name="testName" />
-    <uie:IntegerField label="Int Field" value="42" binding-path="bind_2" focusable="false" readonly="false" style="opacity: 0.5; visibility: visible;" />
-    <uie:FloatField label="Float Field" value="42.2" binding-path="bind_3" focusable="true" readonly="false" />
-    <uie:LongField label="Long Field" value="42" binding-path="bind_4" />
-    <uie:Vector2Field label="Vec2 Field" />
-    <uie:Vector3Field label="Vec3 Field" x="1" y="2" z="3" />
-    <uie:Vector4Field label="Vec4 Field" />
-    <uie:RectField label="Rect" />
-    <uie:BoundsField label="Bounds" />
-    <uie:Vector2IntField label="Vector2Int" />
-    <uie:Vector3IntField label="Vector3Int" />
-    <uie:RectIntField label="RectInt" />
-    <uie:BoundsIntField label="BoundsInt" />
-    <ui:Button text="Button" display-tooltip-when-elided="true" />
-    <uie:ObjectField label="Object Field" type="UnityEngine.Texture2D, UnityEngine.CoreModule" />
-    <ui:Foldout text="Foldout">
-        <ui:Label text="Label" display-tooltip-when-elided="true" />
+    <ui:GroupBox text="Label" class="box-group">
+        <uie:FloatField label="Float Field" value="42.2" />
+    </ui:GroupBox>
+    <ui:GroupBox text="Test" class="title-group">
+        <ui:Toggle label="Toggle" />
+    </ui:GroupBox>
+    <ui:Foldout text="Foldout" class="foldout-group">
+        <ui:Button text="Button" display-tooltip-when-elided="true" />
     </ui:Foldout>
-    <uie:PropertyField binding-path="1" label="2" />
+    <ui:GroupBox style="border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-top-left-radius: 2px; border-bottom-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; background-color: rgb(85, 85, 85); flex-direction: row; align-items: center; padding-left: 3px; padding-right: 3px; padding-top: 3px; padding-bottom: 3px;">
+        <ui:VisualElement style="background-image: url(&apos;project://database/Packages/com.unity.collab-proxy/Editor/Collaborate/Assets/Icons/status-info-dark@2x.png?fileID=2800000&amp;guid=eba49403f5934c74b8114ead5f397592&amp;type=3#status-info-dark@2x&apos;); width: 24px; height: 24px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; flex-shrink: 0;" />
+        <ui:Label text="This is a long label test This is a long label test This is a long label test This is a long label test This is a long label test This is a long label test This is a long label test This is a long label test This is a long label test This is a long label test " display-tooltip-when-elided="false" enable-rich-text="false" style="white-space: normal; flex-shrink: 1; padding-right: 0; padding-left: 3px;" />
+    </ui:GroupBox>
+    <ui:GroupBox class="info-box">
+        <ui:VisualElement />
+        <ui:Label text="" display-tooltip-when-elided="true" />
+    </ui:GroupBox>
 </ui:UXML>
