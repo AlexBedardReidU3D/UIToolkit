@@ -52,7 +52,7 @@ Foldout.foldout-group > #unity-content{
 /*Info box Styles*/
 /*======================================================*/
 GroupBox.info-box{
-    border-color: rgb(0, 0, 0); border-width: 1px;
+    border-color: rgb(45,45,45); border-width: 1px;
     border-radius: 2px;
     background-color: rgb(85, 85, 85); 
     flex-direction: row; 
@@ -72,4 +72,14 @@ GroupBox.info-box > Label.*{
     flex-shrink: 1; 
     padding-right: 0; 
     padding-left: 3px;
+}
+
+/*Display As String Styles*/
+/*======================================================*/
+GroupBox.display-as-string{
+    justify-content: flex-start; 
+    flex-direction: row; 
+    align-items: auto; 
+    margin-top: 1px;
+    padding: 0;
 }

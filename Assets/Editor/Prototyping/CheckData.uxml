@@ -20,6 +20,7 @@
     </ui:GroupBox>
     <ui:GroupBox class="info-box">
         <ui:VisualElement />
-        <ui:Label text="" display-tooltip-when-elided="true" />
+        <ui:Label display-tooltip-when-elided="true" />
     </ui:GroupBox>
+    <ui:TextField picking-mode="Ignore" label="Text Field" value="filler text" text="filler text" />
 </ui:UXML>

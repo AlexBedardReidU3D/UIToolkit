@@ -12,11 +12,16 @@ namespace Editor.Utilities.FileWriters
     {
         private static readonly string PATH = Path.Combine(Application.dataPath, "Editor", "Custom Inspectors");
         
+        //TODO Need to add this to get labels acting the way I want
+        /*myInspector.Q<GroupBox>("Dynamic Group")
+                .Q<Label>(null, "unity-group-box__label").bindingPath = "myDynamicLabel";*/
+        
         //ScriptGenerator Functions
         //================================================================================================================//
 
         public static void TryCreateCustomEditor(in Type type, in IEnumerable<MethodInfo> buttons)
         {
+            return;
             DirectoryInfo directoryInfo = new DirectoryInfo(Path.Combine(PATH, type.Name));
             
             if(directoryInfo.Exists == false)

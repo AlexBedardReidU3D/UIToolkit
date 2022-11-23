@@ -19,6 +19,12 @@ namespace Editor.Utilities.FileWriters
     {
         private static readonly string PATH = Path.Combine(Application.dataPath, "Editor", "Custom Inspectors");
         
+        public enum UITYPE
+        {
+            UI,
+            UIE
+        }
+        
         //Structs
         //================================================================================================================//
         
@@ -132,13 +138,13 @@ namespace Editor.Utilities.FileWriters
                 switch (groupedMembers[i])
                 {
                     case MemberGroupInfo memberGroupInfo:
-                        GetGroupUXML(type, writer, memberGroupInfo);
+                        GetGroupUXML(type, ref writer, memberGroupInfo);
                         break;
                     case FieldInfo fieldInfo:
                         if(fieldInfo.IsPrivate && fieldInfo.GetCustomAttributes(typeof(SerializeField), false).Length == 0)
                             continue;
                         //Write fields
-                        GetFieldAsUXML(writer, fieldInfo);
+                        GetFieldAsUXML(ref writer, fieldInfo);
                         break;
                     case MethodInfo methodInfo:
                         GetMethodAsUxml(type, methodInfo, ref writer);
@@ -155,7 +161,7 @@ namespace Editor.Utilities.FileWriters
             return writer.buffer.ToString();
         }
 
-        private static void GetFieldAsUXML(UXMLWriter writer, in FieldInfo fieldInfo)
+        private static void GetFieldAsUXML(ref UXMLWriter writer, in FieldInfo fieldInfo)
         {
             var infoBox = fieldInfo.GetCustomAttribute<InfoBox>();
             var customLabel = fieldInfo.GetCustomAttribute<CustomLabel>();
@@ -166,7 +172,7 @@ namespace Editor.Utilities.FileWriters
 
             if (infoBox != null)
             {
-                AddInfoBox(writer, infoBox);
+                AddInfoBox(ref writer, infoBox);
             }
 
             //Display As String
@@ -174,7 +180,7 @@ namespace Editor.Utilities.FileWriters
 
             if (displayAsString)
             {
-                DisplayAsString(writer, label, fieldInfo);
+                DisplayAsString(ref writer, label, fieldInfo);
                 return;
             }
 
@@ -185,23 +191,44 @@ namespace Editor.Utilities.FileWriters
             if(hasCustomEditor && fieldInfo.FieldType.IsSubclassOf(typeof(UnityEngine.Object)) == false)
             {
                 BeginFoldoutGroup(ref writer, label);
-                writer.WriteLine($"<uie:PropertyField binding-path=\"{fieldInfo.Name}\" label=\"{label}\" />");
+                //writer.WriteLine($"<uie:PropertyField binding-path=\"{fieldInfo.Name}\" label=\"{label}\" />");
+                ElementBuilder(ref writer, UITYPE.UIE, "PropertyField", label:label, bindingPath:fieldInfo.Name, isReadonly: readOnly);
+
                 EndFoldoutGroup(ref writer);
                 return;
             }
 
+
+            //String field element
+            //----------------------------------------------------------//
+            
+            if (fieldInfo.FieldType == typeof(System.String))
+            {
+                //writer.WriteLine($"<ui:TextField picking-mode=\"Ignore\" label=\"{label}\" binding-path=\"{fieldInfo.Name}\" />");
+                ElementBuilder(ref writer, UITYPE.UI, "TextField", label:label, bindingPath:fieldInfo.Name, pickingMode: "ignore", isReadonly: readOnly);
+
+                return;
+            }
+            
             //Class Drawing
             //----------------------------------------------------------//
-
             if (fieldInfo.FieldType.IsClass)
             {
                 switch (fieldInfo.FieldType.Namespace)
                 {
                     case "UnityEngine":
-                        writer.WriteLine( $"<uie:ObjectField binding-path=\"{fieldInfo.Name}\" label=\"{label}\" type=\"{fieldInfo.FieldType.FullName}, UnityEngine.CoreModule\" {GetReadonlyString(readOnly)}/>");
+                        //writer.WriteLine( $"<uie:ObjectField binding-path=\"{fieldInfo.Name}\" label=\"{label}\" type=\"{fieldInfo.FieldType.FullName}, UnityEngine.CoreModule\" {GetReadonlyString(readOnly)}/>");
+                        ElementBuilder(ref writer, UITYPE.UIE, "ObjectField", label:label, bindingPath:fieldInfo.Name, types: new []
+                        {
+                            fieldInfo.FieldType.FullName,
+                            "UnityEngine.CoreModule"
+                        }, isReadonly: readOnly);
+
                         return;
                     default:
-                        writer.WriteLine($"<uie:PropertyField binding-path=\"{fieldInfo.Name}\" label=\"{label}\" />");
+                        //writer.WriteLine($"<uie:PropertyField binding-path=\"{fieldInfo.Name}\" label=\"{label}\" />");
+                        ElementBuilder(ref writer, UITYPE.UIE, "PropertyField", label:label, bindingPath:fieldInfo.Name, isReadonly: readOnly);
+
                         return;
                 }
             }
@@ -230,7 +257,8 @@ namespace Editor.Utilities.FileWriters
                     uieType = $"{fieldInfo.FieldType.Name}Field";
                     break;
                 default:
-                    writer.WriteLine($"<uie:PropertyField binding-path=\"{fieldInfo.Name}\" label=\"{label}\" />");
+                    //writer.WriteLine($"<uie:PropertyField binding-path=\"{fieldInfo.Name}\" label=\"{label}\" />");
+                    ElementBuilder(ref writer, UITYPE.UIE, "PropertyField", label:label, bindingPath:fieldInfo.Name, isReadonly: readOnly);
                     return;
                 
             }
@@ -238,8 +266,11 @@ namespace Editor.Utilities.FileWriters
             //Default Return
             //----------------------------------------------------------//
 
-            writer.WriteLine($"<uie:{uieType} label=\"{label}\" value=\"\" binding-path=\"{fieldInfo.Name}\" {GetReadonlyString(readOnly)} />");
+            //writer.WriteLine($"<uie:{uieType} label=\"{label}\" value=\"\" binding-path=\"{fieldInfo.Name}\" {GetReadonlyString(readOnly)} />");
+            ElementBuilder(ref writer, UITYPE.UIE, uieType, label:label, value:string.Empty, bindingPath:fieldInfo.Name, isReadonly: readOnly);
         }
+
+        
 
         private static void GetMethodAsUxml(in Type type, in MethodInfo methodInfo, ref UXMLWriter writer)
         {
@@ -251,7 +282,7 @@ namespace Editor.Utilities.FileWriters
             var infoBox = methodInfo.GetCustomAttribute<InfoBox>();
             if (infoBox != null)
             {
-                AddInfoBox(writer, infoBox);
+                AddInfoBox(ref writer, infoBox);
             }
 
             s_ButtonFunctions[type].Add(methodInfo);
@@ -261,7 +292,9 @@ namespace Editor.Utilities.FileWriters
             var label = string.IsNullOrEmpty(buttonText) ? methodInfo.Name : buttonText;
             
             //FIXME Binding Path gets a string for the label, and is not the call for the method
-            writer.WriteLine($"<ui:Button name=\"{methodInfo.Name}\" text=\"{label}\" display-tooltip-when-elided=\"true\" />");
+            //writer.WriteLine($"<ui:Button name=\"{methodInfo.Name}\" text=\"{label}\" display-tooltip-when-elided=\"true\" />");
+
+            ElementBuilder(ref writer, UITYPE.UI, "Button", name: methodInfo.Name, text: label, elidedTooltip: true);
         }
 
         //UXML Group Functions
@@ -335,9 +368,9 @@ namespace Editor.Utilities.FileWriters
             return outList;
         }
 
-        private static void GetGroupUXML(in Type type, UXMLWriter writer, in MemberGroupInfo memberGroupInfo)
+        private static void GetGroupUXML(in Type type, ref UXMLWriter writer, in MemberGroupInfo memberGroupInfo)
         {
-            BeginGroup(memberGroupInfo.GroupsBase, writer);
+            BeginGroup(memberGroupInfo.GroupsBase, ref writer);
             foreach (var memberObject in memberGroupInfo.Objects)
             {
                 switch (memberObject)
@@ -346,7 +379,7 @@ namespace Editor.Utilities.FileWriters
                         if(fieldInfo.IsPrivate && fieldInfo.GetCustomAttributes(typeof(SerializeField), false).Length == 0)
                             continue;
                         //Write fields
-                        GetFieldAsUXML(writer, fieldInfo);
+                        GetFieldAsUXML(ref writer, fieldInfo);
                         break;
                     case MethodInfo methodInfo:
                         GetMethodAsUxml(type, methodInfo, ref writer);
@@ -357,11 +390,18 @@ namespace Editor.Utilities.FileWriters
                         throw new ArgumentOutOfRangeException(nameof(memberObject), memberObject, null);
                 }
             }
-            EndGroup(memberGroupInfo.GroupsBase, writer);
+            EndGroup(memberGroupInfo.GroupsBase, ref writer);
         }
 
-        private static void BeginGroup(in GroupsBase groupsBase, UXMLWriter writer)
+        private static void BeginGroup(in GroupsBase groupsBase, ref UXMLWriter writer)
         {
+            string CheckHasBindingPath(in string label)
+            {
+                if (label[0].Equals('$') == false)
+                    return $"text=\"{label}\"";
+                
+                return $"text=\"1\" binding-path=\"{label.Remove(0, 1)}\"";
+            }
             switch (groupsBase)
             {
                 case VerticalLayoutGroup _:
@@ -371,15 +411,13 @@ namespace Editor.Utilities.FileWriters
                     writer.WriteLine($"<ui:GroupBox name=\"{groupsBase.GetName()}\" style=\"flex-direction: row; justify-content: space-around;\" />");
                     break;
                 case TitleGroup titleGroup:
-                    var textAttributes = titleGroup.noUnderline ? "" : "&lt;u&gt;";
-                    
-                    writer.WriteLine($"<ui:GroupBox name=\"{{groupsBase.GetName()}}\" text=\"{textAttributes}{titleGroup.GetLabel()}\" class=\"title-group\">");
+                    writer.WriteLine($"<ui:GroupBox name=\"{groupsBase.GetName()}\" {CheckHasBindingPath(titleGroup.GetLabel())} class=\"title-group\">");
                     break;
                 case FoldoutGroup foldoutGroup:
-                    writer.WriteLine($"<ui:Foldout name=\"{groupsBase.GetName()}\" text=\"{foldoutGroup.GetLabel()}\" value=\"true\" class=\"foldout-group\">");
+                    writer.WriteLine($"<ui:Foldout name=\"{groupsBase.GetName()}\" {CheckHasBindingPath(foldoutGroup.GetLabel())} value=\"true\" class=\"foldout-group\">");
                     break;
                 case BoxGroup boxGroup:
-                    writer.WriteLine($"<ui:GroupBox name=\"{groupsBase.GetName()}\" text=\"{boxGroup.GetLabel()}\" class=\"box-group\">");
+                    writer.WriteLine($"<ui:GroupBox name=\"{groupsBase.GetName()}\" {CheckHasBindingPath(boxGroup.GetLabel())} class=\"box-group\">");
                     break;
                 default:
                     throw new NotImplementedException();
@@ -388,7 +426,7 @@ namespace Editor.Utilities.FileWriters
             writer.BeginBlock();
 
         }
-        private static void EndGroup(in GroupsBase groupsBase, UXMLWriter writer)
+        private static void EndGroup(in GroupsBase groupsBase, ref UXMLWriter writer)
         {
             writer.EndBlock();
             switch (groupsBase)
@@ -410,7 +448,7 @@ namespace Editor.Utilities.FileWriters
         //================================================================================================================//
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void AddInfoBox(UXMLWriter writer, in InfoBox infoBox)
+        private static void AddInfoBox(ref UXMLWriter writer, in InfoBox infoBox)
         {
             writer.WriteLine("<ui:GroupBox class=\"info-box\">");
             writer.BeginBlock();
@@ -434,7 +472,7 @@ namespace Editor.Utilities.FileWriters
             writer.WriteLine("</ui:Foldout>");
         }
 
-        private static void DisplayAsString(UXMLWriter writer, in string label, in FieldInfo fieldInfo)
+        private static void DisplayAsString(ref UXMLWriter writer, in string label, in FieldInfo fieldInfo)
         {
             //Example of a horizontal layout group used with 2 labels
             /*
@@ -443,10 +481,12 @@ namespace Editor.Utilities.FileWriters
                     <ui:Label text="Label" display-tooltip-when-elided="true" />
                 </ui:GroupBox>
              */
-            writer.WriteLine("<ui:GroupBox style=\"justify-content: flex-start; flex-direction: row; align-items: auto; margin-top: 1px; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0;\">");
+            writer.WriteLine("<ui:GroupBox class=\"display-as-string\">");
                 writer.BeginBlock();
-                writer.WriteLine($"<ui:Label text=\"{label}\" display-tooltip-when-elided=\"true\" />");
-                writer.WriteLine($"<ui:Label text=\"\" binding-path=\"{fieldInfo.Name}\" display-tooltip-when-elided=\"true\" />");
+                ElementBuilder(ref writer, UITYPE.UI, "Label", text:label, elidedTooltip:true);
+                ElementBuilder(ref writer, UITYPE.UI, "Label", text:string.Empty, bindingPath:fieldInfo.Name, elidedTooltip:true);
+                //writer.WriteLine($"<ui:Label text=\"{label}\" display-tooltip-when-elided=\"true\" />");
+                //writer.WriteLine($"<ui:Label text=\"\" binding-path=\"{fieldInfo.Name}\" display-tooltip-when-elided=\"true\" />");
                 writer.EndBlock();
             writer.WriteLine("</ui:GroupBox>");
         }
@@ -457,6 +497,51 @@ namespace Editor.Utilities.FileWriters
         }
         
         //================================================================================================================//
+
+        private static void ElementBuilder(ref UXMLWriter uxmlWriter, 
+            in UITYPE uiType, 
+            in string fieldType,
+            in string name = null,
+            in string label = null,
+            in string text = null,
+            in string value = null,
+            in string bindingPath = null,
+            in string[] types = null,
+            in string pickingMode = null,
+            in string style = null,
+            in string[] classes = null,
+            in bool isReadonly = false,
+            in bool elidedTooltip = false)
+        {
+            var assembly = new List<string>
+            {
+                fieldType
+            };
+            if(name != null)
+                assembly.Add($"name=\"{name}\"");
+            if(label != null)
+                assembly.Add($"label=\"{label}\"");
+            if(text != null)
+                assembly.Add($"text=\"{text}\"");
+            if(value != null)
+                assembly.Add($"value=\"{value}\"");
+            if(bindingPath != null)
+                assembly.Add($"binding-path=\"{bindingPath}\"");
+            if(types != null && types.Length > 0)
+                assembly.Add($"type=\"{string.Join(", ", types)}\"");
+            if(pickingMode != null)
+                assembly.Add($"pickingMode=\"{pickingMode}\"");
+            if(classes != null && classes.Length > 0)
+                assembly.Add($"class=\"{string.Join(' ', classes)}\"");
+            if(style != null)
+                assembly.Add($"style=\"{style}\"");
+            if(isReadonly)
+                assembly.Add(GetReadonlyString(true));
+            if(elidedTooltip)
+                assembly.Add("display-tooltip-when-elided=\"true\"");
+
+            uxmlWriter.WriteLine($"<{uiType.GetAsString()}:{string.Join(' ', assembly)}/>");
+        }
 
         
     }

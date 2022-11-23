@@ -12,6 +12,6 @@
 
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
     <Style src="project://database/Assets/Editor/Prototyping/NewUSSFile.uss?fileID=7433441132597879392&amp;guid=6900da3c74504df48882b65fbc801786&amp;type=3#NewUSSFile" />
-    <uie:IntegerField label="test" value="" binding-path="test"  />
-    <ui:Button name="TestButton" text="TestButton" display-tooltip-when-elided="true" />
+    <uie:IntegerField label="test" value="" binding-path="test"/>
+    <ui:Button name="TestButton" text="TestButton" display-tooltip-when-elided="true"/>
 </ui:UXML>

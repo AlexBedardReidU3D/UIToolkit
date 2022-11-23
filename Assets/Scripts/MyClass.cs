@@ -7,6 +7,9 @@ using UnityEngine;
 [GenerateUXML]
 public class MyClass : MonoBehaviour
 {
+    [SerializeField, TitleGroup("Dynamic Group", "$myDynamicLabel")]
+    private string myDynamicLabel;
+    
     [CustomLabel("Label 1"), ReadOnly, VerticalLayoutGroup("Row1")]
     public int myInt;
     [CustomLabel("My Number"), DisplayAsString, FoldoutGroup("titleGroup", "This is my Group")]

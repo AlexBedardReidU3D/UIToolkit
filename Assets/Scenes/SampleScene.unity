@@ -538,6 +538,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48ec569d53c45274ebfcba44b130352a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  myDynamicLabel: this is a test
   myInt: 0
   myInt2: 1234567890
   m_MyFloat: 0

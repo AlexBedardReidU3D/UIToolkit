@@ -10,6 +10,7 @@
 //------------------------------------------------------------------------------
 
 using System.Reflection;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine.UIElements;
 
@@ -46,8 +47,10 @@ public class @MyClassCustomInspector : UnityEditor.Editor
             TestButtonMethod.Invoke(MyClassInstance, default);
         };
 
+        myInspector.Q<GroupBox>("Dynamic Group")
+                .Q<Label>(null, "unity-group-box__label").bindingPath = "myDynamicLabel";
+        
         //----------------------------------------------------------//
-
         // Return the finished inspector UI
         return myInspector;
     }
