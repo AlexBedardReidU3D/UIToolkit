@@ -12,36 +12,36 @@
 
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
     <Style src="project://database/Assets/Editor/Prototyping/NewUSSFile.uss?fileID=7433441132597879392&amp;guid=6900da3c74504df48882b65fbc801786&amp;type=3#NewUSSFile" />
-    <ui:GroupBox name="Dynamic Group" text="1" binding-path="myDynamicLabel" class="title-group">
-        <ui:TextField label="myDynamicLabel" binding-path="myDynamicLabel" pickingMode="ignore"/>
+    <ui:GroupBox name="Dynamic Group" text="$CUSTOM BIND$" class="title-group">
+        <ui:TextField name="myDynamicLabel" label="myDynamicLabel" binding-path="myDynamicLabel" pickingMode="ignore"/>
     </ui:GroupBox>
     <ui:GroupBox name="Row1">
-        <uie:IntegerField label="Label 1" value="" binding-path="myInt" focusable="false" readonly="true" style="opacity: 0.5;"/>
-        <uie:ObjectField label="myGameObject" binding-path="myGameObject" type="UnityEngine.GameObject, UnityEngine.CoreModule" focusable="false" readonly="true" style="opacity: 0.5;"/>
+        <uie:IntegerField name="myInt" label="Label 1" value="" binding-path="myInt" focusable="false" readonly="true" style="opacity: 0.5;"/>
+        <uie:ObjectField name="myGameObject" label="myGameObject" binding-path="myGameObject" type="UnityEngine.GameObject, UnityEngine.CoreModule" focusable="false" readonly="true" style="opacity: 0.5;"/>
         <ui:Button name="TestButton2" text="My Custom Button" display-tooltip-when-elided="true"/>
     </ui:GroupBox>
-    <ui:Foldout name="titleGroup" text="This is my Group" value="true" class="foldout-group">
+    <ui:Foldout name="FoldoutGroup" text="$CUSTOM BIND$" value="true" class="foldout-group">
         <ui:GroupBox class="display-as-string">
-            <ui:Label text="My Number" display-tooltip-when-elided="true"/>
-            <ui:Label text="" binding-path="myInt2" display-tooltip-when-elided="true"/>
+            <ui:Label name="myInt2" text="My Number" display-tooltip-when-elided="true"/>
+            <ui:Label name="myInt2" text="" binding-path="myInt2" display-tooltip-when-elided="true"/>
         </ui:GroupBox>
         <ui:Button name="TestButton" text="TestButton" display-tooltip-when-elided="true"/>
     </ui:Foldout>
-    <uie:FloatField label="Label 2" value="" binding-path="m_MyFloat"/>
-    <uie:PropertyField label="intArray" binding-path="intArray"/>
-    <uie:PropertyField label="intList" binding-path="intList"/>
-    <uie:PropertyField label="myStructList" binding-path="myStructList"/>
-    <uie:PropertyField label="myPropertyTestList" binding-path="myPropertyTestList"/>
+    <uie:FloatField name="m_MyFloat" label="$myDynamicLabel" value="" binding-path="m_MyFloat"/>
+    <uie:PropertyField name="intArray" label="intArray" binding-path="intArray"/>
+    <uie:PropertyField name="intList" label="intList" binding-path="intList"/>
+    <uie:PropertyField name="myStructList" label="myStructList" binding-path="myStructList"/>
+    <uie:PropertyField name="myPropertyTestList" label="myPropertyTestList" binding-path="myPropertyTestList"/>
     <ui:GroupBox class="info-box">
-        <ui:VisualElement />
-        <ui:Label text="Here is some information about this field" display-tooltip-when-elided="true" />
+        <ui:VisualElement/>
+        <ui:Label text="Here is some information about this field" display-tooltip-when-elided="true"/>
     </ui:GroupBox>
     <ui:Foldout text="myStruct">
-        <uie:PropertyField label="myStruct" binding-path="myStruct"/>
+        <uie:PropertyField name="myStruct" label="myStruct" binding-path="myStruct"/>
     </ui:Foldout>
-    <uie:PropertyField label="myPropertyTest" binding-path="myPropertyTest"/>
-    <uie:LongField label="myLong" value="" binding-path="myLong"/>
-    <uie:Vector2Field label="myV2" value="" binding-path="myV2"/>
-    <uie:Vector3Field label="myV3" value="" binding-path="myV3"/>
-    <uie:Vector4Field label="myV4" value="" binding-path="myV4"/>
+    <uie:PropertyField name="myPropertyTest" label="myPropertyTest" binding-path="myPropertyTest"/>
+    <uie:LongField name="myLong" label="myLong" value="" binding-path="myLong"/>
+    <uie:Vector2Field name="myV2" label="myV2" value="" binding-path="myV2"/>
+    <uie:Vector3Field name="myV3" label="myV3" value="" binding-path="myV3"/>
+    <uie:Vector4Field name="myV4" label="myV4" value="" binding-path="myV4"/>
 </ui:UXML>

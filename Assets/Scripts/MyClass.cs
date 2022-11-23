@@ -12,9 +12,9 @@ public class MyClass : MonoBehaviour
     
     [CustomLabel("Label 1"), ReadOnly, VerticalLayoutGroup("Row1")]
     public int myInt;
-    [CustomLabel("My Number"), DisplayAsString, FoldoutGroup("titleGroup", "This is my Group")]
+    [CustomLabel("My Number"), DisplayAsString, FoldoutGroup("FoldoutGroup", "$myDynamicLabel")]
     public int myInt2;
-    [SerializeField, CustomLabel("Label 2")]
+    [SerializeField, CustomLabel("$myDynamicLabel")]
     private float m_MyFloat;
 
     public int[] intArray;
@@ -37,7 +37,7 @@ public class MyClass : MonoBehaviour
         
     }
     
-    [Button, FoldoutGroup("titleGroup", "This is my Group")]
+    [Button, FoldoutGroup("FoldoutGroup")]
     private void TestButton()
     {
         Debug.Log("TestButton");

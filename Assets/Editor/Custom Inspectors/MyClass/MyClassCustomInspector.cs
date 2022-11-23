@@ -10,8 +10,8 @@
 //------------------------------------------------------------------------------
 
 using System.Reflection;
-using System.Text.RegularExpressions;
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
 [CustomEditor(typeof(MyClass))]
@@ -47,10 +47,28 @@ public class @MyClassCustomInspector : UnityEditor.Editor
             TestButtonMethod.Invoke(MyClassInstance, default);
         };
 
-        myInspector.Q<GroupBox>("Dynamic Group")
-                .Q<Label>(null, "unity-group-box__label").bindingPath = "myDynamicLabel";
-        
         //----------------------------------------------------------//
+
+        //Custom Label Bindings
+        //----------------------------------------------------------//
+
+        //Element [Dynamic Group] (GroupBox) Binding to -> myDynamicLabel
+
+        myInspector.Q<GroupBox>("Dynamic Group")
+        	.Q<Label>(null, GroupBox.labelUssClassName).bindingPath = "myDynamicLabel";
+
+        //Element [FoldoutGroup] (Foldout) Binding to -> myDynamicLabel
+
+        myInspector.Q<Foldout>("FoldoutGroup")
+        	.Q<Label>(null, Foldout.textUssClassName).bindingPath = "myDynamicLabel";
+
+        //Element [m_MyFloat] (FloatField) Binding to -> myDynamicLabel
+
+        myInspector.Q<FloatField>("m_MyFloat")
+        	.Q<Label>(null, FloatField.labelUssClassName).bindingPath = "myDynamicLabel";
+
+        //----------------------------------------------------------//
+
         // Return the finished inspector UI
         return myInspector;
     }

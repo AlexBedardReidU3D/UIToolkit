@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Editor.Utilities.FileWriters
 {
@@ -13,15 +14,16 @@ namespace Editor.Utilities.FileWriters
         private static readonly string PATH = Path.Combine(Application.dataPath, "Editor", "Custom Inspectors");
         
         //TODO Need to add this to get labels acting the way I want
-        /*myInspector.Q<GroupBox>("Dynamic Group")
-                .Q<Label>(null, "unity-group-box__label").bindingPath = "myDynamicLabel";*/
+        /*var labelClass = GroupBox.labelUssClassName;
+        myInspector.Q<GroupBox>("Dynamic Group")
+                .Q<Label>(null, labelClass).bindingPath = "myDynamicLabel";*/
         
         //ScriptGenerator Functions
         //================================================================================================================//
 
-        public static void TryCreateCustomEditor(in Type type, in IEnumerable<MethodInfo> buttons)
+        public static void TryCreateCustomEditor(in Type type, in IEnumerable<MethodInfo> buttons, in IEnumerable<LabelBindingData> labelBindingDatas)
         {
-            return;
+            //return;
             DirectoryInfo directoryInfo = new DirectoryInfo(Path.Combine(PATH, type.Name));
             
             if(directoryInfo.Exists == false)
@@ -38,13 +40,13 @@ namespace Editor.Utilities.FileWriters
             {
                 className = $"{type.Name}CustomInspector";
                 //TODO Create Custom Editor
-                code = GenerateCustomEditorCode(type, className, buttons);
+                code = GenerateCustomEditorCode(type, className, buttons, labelBindingDatas);
             }
             else
             {
                 className = $"{type.Name}PropertyDrawer";
                 //TODO Create Property Drawer
-                code = GenerateCustomPropertyDrawerCode(type, className, buttons);
+                code = GenerateCustomPropertyDrawerCode(type, className, buttons, labelBindingDatas);
             }
 
             string filename = $"{className}.cs";
@@ -58,7 +60,7 @@ namespace Editor.Utilities.FileWriters
         //Code Generation Functions
         //================================================================================================================//
 
-        private static string GenerateCustomEditorCode(in Type type, in string className, in IEnumerable<MethodInfo> buttons)
+        private static string GenerateCustomEditorCode(in Type type, in string className, in IEnumerable<MethodInfo> buttons, in IEnumerable<LabelBindingData> labelBindingDatas)
         {
             var writer = new Writer
             {
@@ -75,6 +77,7 @@ namespace Editor.Utilities.FileWriters
             // Usings.
             writer.WriteLine("using System.Reflection;");
             writer.WriteLine("using UnityEditor;");
+            writer.WriteLine("using UnityEditor.UIElements;");
             writer.WriteLine("using UnityEngine.UIElements;");
             writer.WriteLine();
             
@@ -125,6 +128,43 @@ namespace Editor.Utilities.FileWriters
 
             }
             
+            //Custom Label Bindings
+            if (labelBindingDatas.Any())
+            {
+                /*var labelClass = GroupBox.labelUssClassName;
+                    myInspector.Q<GroupBox>("Dynamic Group")
+                            .Q<Label>(null, labelClass).bindingPath = "myDynamicLabel";*/
+                writer.WriteLine("//Custom Label Bindings");
+
+                writer.WriteLine("//----------------------------------------------------------//");
+                writer.WriteLine();
+
+                foreach (var labelBinding in labelBindingDatas)
+                {
+                   
+                    writer.WriteLine($"//{labelBinding.ToString()}");
+                    if (labelBinding.ParentType == typeof(Foldout))
+                    {
+                        writer.WriteLine();                    
+                        writer.WriteLine($"myInspector.Q<{labelBinding.ParentType.Name}>(\"{labelBinding.ParentName}\")");
+                        writer.WriteLine($"\t.Q<{nameof(Label)}>(null, {nameof(Foldout)}.{nameof(Foldout.textUssClassName)}).bindingPath = \"{labelBinding.BindingPath}\";"); 
+                    }
+                    else
+                    {
+                        writer.WriteLine();                    
+                        writer.WriteLine($"myInspector.Q<{labelBinding.ParentType.Name}>(\"{labelBinding.ParentName}\")");
+                        writer.WriteLine($"\t.Q<{nameof(Label)}>(null, {labelBinding.ParentType.Name}.labelUssClassName).bindingPath = \"{labelBinding.BindingPath}\";"); 
+                    }
+
+                    writer.WriteLine();
+
+                }
+                
+                writer.WriteLine("//----------------------------------------------------------//");
+                writer.WriteLine();
+
+            }
+            
             writer.WriteLine("// Return the finished inspector UI");
             writer.WriteLine("return myInspector;");
             //End Function
@@ -136,7 +176,7 @@ namespace Editor.Utilities.FileWriters
             return writer.buffer.ToString();
         }
 
-        private static string GenerateCustomPropertyDrawerCode(in Type type, in string className, in IEnumerable<MethodInfo> buttons)
+        private static string GenerateCustomPropertyDrawerCode(in Type type, in string className, in IEnumerable<MethodInfo> buttons, in IEnumerable<LabelBindingData> labelBindingDatas)
         {
             var writer = new Writer
             {
@@ -206,6 +246,44 @@ namespace Editor.Utilities.FileWriters
                 writer.WriteLine();
 
             }
+            
+            //Custom Label Bindings
+            if (labelBindingDatas.Any())
+            {
+                /*var labelClass = GroupBox.labelUssClassName;
+                    myInspector.Q<GroupBox>("Dynamic Group")
+                            .Q<Label>(null, labelClass).bindingPath = "myDynamicLabel";*/
+                writer.WriteLine("//Custom Label Bindings");
+
+                writer.WriteLine("//----------------------------------------------------------//");
+                writer.WriteLine();
+
+                foreach (var labelBinding in labelBindingDatas)
+                {
+                   
+                    writer.WriteLine($"//{labelBinding.ToString()}");
+                    if (labelBinding.ParentType == typeof(Foldout))
+                    {
+                        writer.WriteLine();                    
+                        writer.WriteLine($"myInspector.Q<{labelBinding.ParentType.Name}>(\"{labelBinding.ParentName}\")");
+                        writer.WriteLine($"\t.Q<{nameof(Label)}>(null, {nameof(Foldout)}.{nameof(Foldout.textUssClassName)}).bindingPath = \"{labelBinding.BindingPath}\";"); 
+                    }
+                    else
+                    {
+                        writer.WriteLine();                    
+                        writer.WriteLine($"myInspector.Q<{labelBinding.ParentType.Name}>(\"{labelBinding.ParentName}\")");
+                        writer.WriteLine($"\t.Q<{nameof(Label)}>(null, {labelBinding.ParentType.Name}.labelUssClassName).bindingPath = \"{labelBinding.BindingPath}\";"); 
+                    }
+
+                    writer.WriteLine();
+
+                }
+                
+                writer.WriteLine("//----------------------------------------------------------//");
+                writer.WriteLine();
+
+            }
+            
             writer.WriteLine("// Return the finished inspector UI");
             writer.WriteLine("return myInspector;");
             //End Function

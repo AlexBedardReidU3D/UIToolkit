@@ -3,13 +3,13 @@
     [System.AttributeUsage(System.AttributeTargets.Field)]  
     public class CustomLabel : System.Attribute  
     {  
-        private readonly string m_Text;  
+        private readonly string m_Label;  
     
-        public CustomLabel(string text)  
+        public CustomLabel(string label)  
         {  
-            m_Text = text;  
+            m_Label = label;  
         }
 
-        public string GetText() => m_Text;
+        public string GetText() => m_Label;
     } 
 }
