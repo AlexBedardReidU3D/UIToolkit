@@ -1,13 +1,15 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace Attributes
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Method)]
-    public class InfoBox : Attribute
+    [Conditional("UNITY_EDITOR")]
+    public class InfoBoxAttribute : Attribute
     {
         public readonly string InfoText;
         
-        public InfoBox(string infoText)
+        public InfoBoxAttribute(string infoText)
         {
             InfoText = infoText;
         }

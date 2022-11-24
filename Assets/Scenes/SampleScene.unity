@@ -552,6 +552,8 @@ MonoBehaviour:
   myGameObject: {fileID: 0}
   myStruct:
     test: 0
+  myStruct2:
+    test: 0
   myPropertyTest:
     test: 0
   myLong: 0

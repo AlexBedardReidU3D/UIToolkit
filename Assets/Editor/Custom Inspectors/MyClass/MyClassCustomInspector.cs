@@ -11,6 +11,7 @@
 
 using System.Reflection;
 using UnityEditor;
+using UnityEngine;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
@@ -28,10 +29,18 @@ public class @MyClassCustomInspector : UnityEditor.Editor
         VisualTreeAsset visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/Editor/Custom Inspectors/MyClass/MyClassUXML.uxml");
         visualTree.CloneTree(myInspector);
 
+        //----------------------------------------------------------//
         //Button Attribute Calls
         //----------------------------------------------------------//
 
         var classType = MyClassInstance.GetType();
+
+        //DisableInEditorButton Action Callback
+        var DisableInEditorButtonMethod = classType.GetMethod("DisableInEditorButton", BindingFlags.NonPublic | BindingFlags.Instance);
+        myInspector.Q<UnityEngine.UIElements.Button>("DisableInEditorButton").clickable.clicked += () =>
+        {
+            DisableInEditorButtonMethod.Invoke(MyClassInstance, default);
+        };
 
         //TestButton2 Action Callback
         var TestButton2Method = classType.GetMethod("TestButton2", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -40,36 +49,56 @@ public class @MyClassCustomInspector : UnityEditor.Editor
             TestButton2Method.Invoke(MyClassInstance, default);
         };
 
-        //TestButton Action Callback
-        var TestButtonMethod = classType.GetMethod("TestButton", BindingFlags.NonPublic | BindingFlags.Instance);
-        myInspector.Q<UnityEngine.UIElements.Button>("TestButton").clickable.clicked += () =>
-        {
-            TestButtonMethod.Invoke(MyClassInstance, default);
-        };
 
         //----------------------------------------------------------//
-
         //Custom Label Bindings
         //----------------------------------------------------------//
 
-        //Element [Dynamic Group] (GroupBox) Binding to -> myDynamicLabel
-
+        //<GroupBox>[Dynamic Group] BIND TO -> myDynamicLabel
         myInspector.Q<GroupBox>("Dynamic Group")
         	.Q<Label>(null, GroupBox.labelUssClassName).bindingPath = "myDynamicLabel";
 
-        //Element [FoldoutGroup] (Foldout) Binding to -> myDynamicLabel
+        //<FloatField>[m_MyFloat] BIND TO -> myDynamicLabel
+        myInspector.Q<FloatField>("m_MyFloat")
+        	.Q<Label>(null, FloatField.labelUssClassName).bindingPath = "myDynamicLabel";
 
+        //<Foldout>[FoldoutGroup] BIND TO -> myDynamicLabel
         myInspector.Q<Foldout>("FoldoutGroup")
         	.Q<Label>(null, Foldout.textUssClassName).bindingPath = "myDynamicLabel";
 
-        //Element [m_MyFloat] (FloatField) Binding to -> myDynamicLabel
 
-        myInspector.Q<FloatField>("m_MyFloat")
-        	.Q<Label>(null, FloatField.labelUssClassName).bindingPath = "myDynamicLabel";
+        //----------------------------------------------------------//
+        //Conditional Editors
+        //----------------------------------------------------------//
+
+        var applicationIsPlaying = Application.isPlaying;
+
+        //Disable in Editor
+        SetEnabled(myInspector.Q<Button>("DisableInEditorButton"), applicationIsPlaying, true);
+
+        SetEnabled(myInspector.Q<LongField>("myLong"), applicationIsPlaying, true);
+
+        //Disable in Play mode
+        SetEnabled(myInspector.Q<Vector2Field>("myV2"), applicationIsPlaying, false);
+
+        SetEnabled(myInspector.Q<Vector3Field>("myV3"), applicationIsPlaying, false);
 
         //----------------------------------------------------------//
 
         // Return the finished inspector UI
         return myInspector;
+    }
+
+    private void SetEnabled(in VisualElement visualElement, in bool playState, in bool desiredState)
+    {
+        var setState = playState == desiredState;
+
+        visualElement.focusable = setState;
+        visualElement.SetEnabled(setState);
+
+        if(setState == false)
+            visualElement.AddToClassList("read-only");
+        else
+            visualElement.RemoveFromClassList("read-only");
     }
 }

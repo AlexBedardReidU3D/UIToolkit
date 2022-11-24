@@ -1,11 +1,14 @@
-﻿namespace Attributes
+﻿using System.Diagnostics;
+
+namespace Attributes
 {
     [System.AttributeUsage(System.AttributeTargets.Field)]  
-    public class CustomLabel : System.Attribute  
+    [Conditional("UNITY_EDITOR")]
+    public class CustomLabelAttribute : System.Attribute  
     {  
         private readonly string m_Label;  
     
-        public CustomLabel(string label)  
+        public CustomLabelAttribute(string label)  
         {  
             m_Label = label;  
         }

@@ -15,33 +15,35 @@
     <ui:GroupBox name="Dynamic Group" text="$CUSTOM BIND$" class="title-group">
         <ui:TextField name="myDynamicLabel" label="myDynamicLabel" binding-path="myDynamicLabel" pickingMode="ignore"/>
     </ui:GroupBox>
-    <ui:GroupBox name="Row1">
-        <uie:IntegerField name="myInt" label="Label 1" value="" binding-path="myInt" focusable="false" readonly="true" style="opacity: 0.5;"/>
-        <uie:ObjectField name="myGameObject" label="myGameObject" binding-path="myGameObject" type="UnityEngine.GameObject, UnityEngine.CoreModule" focusable="false" readonly="true" style="opacity: 0.5;"/>
-        <ui:Button name="TestButton2" text="My Custom Button" display-tooltip-when-elided="true"/>
-    </ui:GroupBox>
+    <uie:FloatField name="m_MyFloat" label="$myDynamicLabel" value="" binding-path="m_MyFloat"/>
     <ui:Foldout name="FoldoutGroup" text="$CUSTOM BIND$" value="true" class="foldout-group">
         <ui:GroupBox class="display-as-string">
             <ui:Label name="myInt2" text="My Number" display-tooltip-when-elided="true"/>
             <ui:Label name="myInt2" text="" binding-path="myInt2" display-tooltip-when-elided="true"/>
         </ui:GroupBox>
-        <ui:Button name="TestButton" text="TestButton" display-tooltip-when-elided="true"/>
+        <ui:Button name="DisableInEditorButton" text="DisableInEditorButton" display-tooltip-when-elided="true"/>
     </ui:Foldout>
-    <uie:FloatField name="m_MyFloat" label="$myDynamicLabel" value="" binding-path="m_MyFloat"/>
-    <uie:PropertyField name="intArray" label="intArray" binding-path="intArray"/>
-    <uie:PropertyField name="intList" label="intList" binding-path="intList"/>
-    <uie:PropertyField name="myStructList" label="myStructList" binding-path="myStructList"/>
-    <uie:PropertyField name="myPropertyTestList" label="myPropertyTestList" binding-path="myPropertyTestList"/>
+    <uie:PropertyField name="thisIsAToggle" label="thisIsAToggle" binding-path="thisIsAToggle"/>
+    <ui:GroupBox name="MyStructBox" text="MyStructBox" class="box-group">
+        <ui:GroupBox class="info-box">
+            <ui:VisualElement/>
+            <ui:Label text="Here is some information about this field" display-tooltip-when-elided="true"/>
+        </ui:GroupBox>
+        <uie:PropertyField name="myStruct" label="myStruct" binding-path="myStruct"/>
+    </ui:GroupBox>
     <ui:GroupBox class="info-box">
         <ui:VisualElement/>
         <ui:Label text="Here is some information about this field" display-tooltip-when-elided="true"/>
     </ui:GroupBox>
-    <ui:Foldout text="myStruct">
-        <uie:PropertyField name="myStruct" label="myStruct" binding-path="myStruct"/>
+    <ui:Foldout text="myStruct2">
+        <uie:PropertyField name="myStruct2" label="myStruct2" binding-path="myStruct2"/>
     </ui:Foldout>
     <uie:PropertyField name="myPropertyTest" label="myPropertyTest" binding-path="myPropertyTest"/>
     <uie:LongField name="myLong" label="myLong" value="" binding-path="myLong"/>
     <uie:Vector2Field name="myV2" label="myV2" value="" binding-path="myV2"/>
     <uie:Vector3Field name="myV3" label="myV3" value="" binding-path="myV3"/>
     <uie:Vector4Field name="myV4" label="myV4" value="" binding-path="myV4"/>
+    <ui:GroupBox name="Row1">
+        <ui:Button name="TestButton2" text="My Custom Button" display-tooltip-when-elided="true"/>
+    </ui:GroupBox>
 </ui:UXML>

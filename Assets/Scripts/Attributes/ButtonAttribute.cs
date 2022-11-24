@@ -1,16 +1,19 @@
-﻿namespace Attributes
+﻿using System.Diagnostics;
+
+namespace Attributes
 {
     [System.AttributeUsage(System.AttributeTargets.Method)]  
-    public class Button : System.Attribute  
+    [Conditional("UNITY_EDITOR")]
+    public class ButtonAttribute : System.Attribute  
     {  
         private readonly string m_Text;  
     
-        public Button(string text)  
+        public ButtonAttribute(string text)  
         {  
             m_Text = text;  
         }
     
-        public Button()  
+        public ButtonAttribute()  
         {  
         }
 

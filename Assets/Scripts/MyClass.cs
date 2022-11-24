@@ -10,24 +10,18 @@ public class MyClass : MonoBehaviour
     [SerializeField, TitleGroup("Dynamic Group", "$myDynamicLabel")]
     private string myDynamicLabel;
     
-    [CustomLabel("Label 1"), ReadOnly, VerticalLayoutGroup("Row1")]
-    public int myInt;
-    [CustomLabel("My Number"), DisplayAsString, FoldoutGroup("FoldoutGroup", "$myDynamicLabel")]
-    public int myInt2;
     [SerializeField, CustomLabel("$myDynamicLabel")]
     private float m_MyFloat;
+    [CustomLabel("My Number"), DisplayAsString, FoldoutGroup("FoldoutGroup", "$myDynamicLabel")]
+    public int myInt2;
 
-    public int[] intArray;
-    public List<int> intList;
+    public bool thisIsAToggle;
 
-    public List<MyStruct> myStructList;
-    public List<MyPropertyTest> myPropertyTestList;
-
-    [ReadOnly, VerticalLayoutGroup("Row1")]
-    public GameObject myGameObject;
-
-    [InfoBox("Here is some information about this field")]
+    [InfoBox("Here is some information about this field"), BoxGroup("MyStructBox")]
     public MyStruct myStruct;
+    
+    [InfoBox("Here is some information about this field")]
+    public MyStruct myStruct2;
     
     public MyPropertyTest myPropertyTest;
     
@@ -37,8 +31,8 @@ public class MyClass : MonoBehaviour
         
     }
     
-    [Button, FoldoutGroup("FoldoutGroup")]
-    private void TestButton()
+    [Button, FoldoutGroup("FoldoutGroup"), DisableInEditorMode]
+    private void DisableInEditorButton()
     {
         Debug.Log("TestButton");
     }
@@ -49,8 +43,11 @@ public class MyClass : MonoBehaviour
         Debug.Log("TestButton2");
     }
     
+    [DisableInEditorMode]
     public long myLong;
+    [DisableInPlayMode]
     public Vector2 myV2;
+    [DisableInPlayMode]
     public Vector3 myV3;
     public Vector4 myV4;
 }

@@ -49,6 +49,12 @@ Foldout.foldout-group > #unity-content{
     display: none;
 }
 
+/*Hide Label Styles*/
+/*======================================================*/
+.read-only{
+    opacity: 0.5;
+}
+
 /*Info box Styles*/
 /*======================================================*/
 GroupBox.info-box{

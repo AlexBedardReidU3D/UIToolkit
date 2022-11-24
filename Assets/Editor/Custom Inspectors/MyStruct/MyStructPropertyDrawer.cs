@@ -11,6 +11,8 @@
 
 using System.Reflection;
 using UnityEditor;
+using UnityEngine;
+using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
 [CustomPropertyDrawer(typeof(MyStruct))]
@@ -25,6 +27,7 @@ public class @MyStructPropertyDrawer : PropertyDrawer
         VisualTreeAsset visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/Editor/Custom Inspectors/MyStruct/MyStructUXML.uxml");
         visualTree.CloneTree(myInspector);
 
+        //----------------------------------------------------------//
         //Button Attribute Calls
         //----------------------------------------------------------//
 
@@ -37,6 +40,14 @@ public class @MyStructPropertyDrawer : PropertyDrawer
         {
             TestButtonMethod.Invoke(valueTarget, default);
         };
+
+        //----------------------------------------------------------//
+
+        //----------------------------------------------------------//
+        //Conditional Editors
+        //----------------------------------------------------------//
+
+        var applicationIsPlaying = Application.isPlaying;
 
         //----------------------------------------------------------//
 

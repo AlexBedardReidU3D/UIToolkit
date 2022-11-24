@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Attributes;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -21,7 +22,10 @@ namespace Editor.Utilities.FileWriters
         //ScriptGenerator Functions
         //================================================================================================================//
 
-        public static void TryCreateCustomEditor(in Type type, in IEnumerable<MethodInfo> buttons, in IEnumerable<LabelBindingData> labelBindingDatas)
+        public static void TryCreateCustomEditor(in Type type, 
+            in IEnumerable<MethodInfo> methodButtons, 
+            in IEnumerable<LabelBindingData> labelBindingDatas,
+            in IEnumerable<ConditionalData> conditionalDatas)
         {
             //return;
             DirectoryInfo directoryInfo = new DirectoryInfo(Path.Combine(PATH, type.Name));
@@ -40,27 +44,27 @@ namespace Editor.Utilities.FileWriters
             {
                 className = $"{type.Name}CustomInspector";
                 //TODO Create Custom Editor
-                code = GenerateCustomEditorCode(type, className, buttons, labelBindingDatas);
+                code = GenerateCustomEditorCode(type, className, methodButtons, labelBindingDatas, conditionalDatas);
             }
             else
             {
                 className = $"{type.Name}PropertyDrawer";
                 //TODO Create Property Drawer
-                code = GenerateCustomPropertyDrawerCode(type, className, buttons, labelBindingDatas);
+                code = GenerateCustomPropertyDrawerCode(type, className, methodButtons, labelBindingDatas, conditionalDatas);
             }
 
             string filename = $"{className}.cs";
             var path = Path.Combine(directoryInfo.FullName, filename);
             File.WriteAllText(path, code);
-            
-            Debug.Log($"Successfully Generated Custom Inspector for {type.Name}");
-
         }
 
         //Code Generation Functions
         //================================================================================================================//
 
-        private static string GenerateCustomEditorCode(in Type type, in string className, in IEnumerable<MethodInfo> buttons, in IEnumerable<LabelBindingData> labelBindingDatas)
+        private static string GenerateCustomEditorCode(in Type type, in string className, 
+            in IEnumerable<MethodInfo> buttons, 
+            in IEnumerable<LabelBindingData> labelBindingDatas,
+            in IEnumerable<ConditionalData> conditionalDatas)
         {
             var writer = new Writer
             {
@@ -77,6 +81,7 @@ namespace Editor.Utilities.FileWriters
             // Usings.
             writer.WriteLine("using System.Reflection;");
             writer.WriteLine("using UnityEditor;");
+            writer.WriteLine("using UnityEngine;");
             writer.WriteLine("using UnityEditor.UIElements;");
             writer.WriteLine("using UnityEngine.UIElements;");
             writer.WriteLine();
@@ -101,11 +106,14 @@ namespace Editor.Utilities.FileWriters
             writer.WriteLine();
 
             //Button callbacks
-            if (buttons.Any())
+            GetButtonsCode(objectInstanceName, buttons, ref writer);
+            /*if (buttons.Any())
             {
-                writer.WriteLine("//Button Attribute Calls");
 
                 writer.WriteLine("//----------------------------------------------------------//");
+                writer.WriteLine("//Button Attribute Calls");
+                writer.WriteLine("//----------------------------------------------------------//");
+                
                 writer.WriteLine();
                 writer.WriteLine($"var classType = {objectInstanceName}.GetType();");
                 writer.WriteLine();
@@ -123,19 +131,19 @@ namespace Editor.Utilities.FileWriters
                     writer.WriteLine();
                 }
                 
-                writer.WriteLine("//----------------------------------------------------------//");
                 writer.WriteLine();
 
-            }
+            }*/
             
             //Custom Label Bindings
-            if (labelBindingDatas.Any())
+            GetLabelBindsCode(labelBindingDatas, ref writer);
+            /*if (labelBindingDatas.Any())
             {
                 /*var labelClass = GroupBox.labelUssClassName;
                     myInspector.Q<GroupBox>("Dynamic Group")
-                            .Q<Label>(null, labelClass).bindingPath = "myDynamicLabel";*/
+                            .Q<Label>(null, labelClass).bindingPath = "myDynamicLabel";#1#
+                writer.WriteLine("//----------------------------------------------------------//");
                 writer.WriteLine("//Custom Label Bindings");
-
                 writer.WriteLine("//----------------------------------------------------------//");
                 writer.WriteLine();
 
@@ -145,13 +153,11 @@ namespace Editor.Utilities.FileWriters
                     writer.WriteLine($"//{labelBinding.ToString()}");
                     if (labelBinding.ParentType == typeof(Foldout))
                     {
-                        writer.WriteLine();                    
                         writer.WriteLine($"myInspector.Q<{labelBinding.ParentType.Name}>(\"{labelBinding.ParentName}\")");
                         writer.WriteLine($"\t.Q<{nameof(Label)}>(null, {nameof(Foldout)}.{nameof(Foldout.textUssClassName)}).bindingPath = \"{labelBinding.BindingPath}\";"); 
                     }
                     else
                     {
-                        writer.WriteLine();                    
                         writer.WriteLine($"myInspector.Q<{labelBinding.ParentType.Name}>(\"{labelBinding.ParentName}\")");
                         writer.WriteLine($"\t.Q<{nameof(Label)}>(null, {labelBinding.ParentType.Name}.labelUssClassName).bindingPath = \"{labelBinding.BindingPath}\";"); 
                     }
@@ -163,12 +169,21 @@ namespace Editor.Utilities.FileWriters
                 writer.WriteLine("//----------------------------------------------------------//");
                 writer.WriteLine();
 
-            }
+            }*/
+            
+            //Custom Conditionals for Editing
+            GetConditionalsCode(conditionalDatas, ref writer);
+            
+            writer.WriteLine("//----------------------------------------------------------//");
+            writer.WriteLine();
             
             writer.WriteLine("// Return the finished inspector UI");
             writer.WriteLine("return myInspector;");
             //End Function
             writer.EndBlock();
+
+            //See if we should be adding the function to setup conditionals
+            TryAddConditionalMethod(conditionalDatas, ref writer);
             
             //End Class
             writer.EndBlock();
@@ -176,7 +191,10 @@ namespace Editor.Utilities.FileWriters
             return writer.buffer.ToString();
         }
 
-        private static string GenerateCustomPropertyDrawerCode(in Type type, in string className, in IEnumerable<MethodInfo> buttons, in IEnumerable<LabelBindingData> labelBindingDatas)
+        private static string GenerateCustomPropertyDrawerCode(in Type type, in string className,
+            in IEnumerable<MethodInfo> buttons, 
+            in IEnumerable<LabelBindingData> labelBindingDatas,
+            in IEnumerable<ConditionalData> conditionalDatas)
         {
             var writer = new Writer
             {
@@ -190,8 +208,10 @@ namespace Editor.Utilities.FileWriters
             // Usings.
             writer.WriteLine("using System.Reflection;");
             writer.WriteLine("using UnityEditor;");
+            writer.WriteLine("using UnityEngine;");
+            writer.WriteLine("using UnityEditor.UIElements;");
             writer.WriteLine("using UnityEngine.UIElements;");
-            writer.WriteLine("");
+            writer.WriteLine();
             
             writer.WriteLine($"[CustomPropertyDrawer(typeof({type.Name}))]");
             
@@ -209,6 +229,7 @@ namespace Editor.Utilities.FileWriters
             writer.WriteLine($"VisualTreeAsset visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(\"Assets/Editor/Custom Inspectors/{type.Name}/{type.Name}UXML.uxml\");");
             writer.WriteLine("visualTree.CloneTree(myInspector);");
             writer.WriteLine("");
+            
             //Button callbacks
             if (buttons.Any())
             {
@@ -221,9 +242,10 @@ namespace Editor.Utilities.FileWriters
         {
             TestButtonMethod.Invoke(valueTarget, default);
         };*/
-                writer.WriteLine("//Button Attribute Calls");
-
                 writer.WriteLine("//----------------------------------------------------------//");
+                writer.WriteLine("//Button Attribute Calls");
+                writer.WriteLine("//----------------------------------------------------------//");
+
                 writer.WriteLine();
                 writer.WriteLine("var valueTarget = fieldInfo.GetValue(property.serializedObject.targetObject);");
                 writer.WriteLine("var classType = fieldInfo.FieldType;");
@@ -248,46 +270,21 @@ namespace Editor.Utilities.FileWriters
             }
             
             //Custom Label Bindings
-            if (labelBindingDatas.Any())
-            {
-                /*var labelClass = GroupBox.labelUssClassName;
-                    myInspector.Q<GroupBox>("Dynamic Group")
-                            .Q<Label>(null, labelClass).bindingPath = "myDynamicLabel";*/
-                writer.WriteLine("//Custom Label Bindings");
-
-                writer.WriteLine("//----------------------------------------------------------//");
-                writer.WriteLine();
-
-                foreach (var labelBinding in labelBindingDatas)
-                {
-                   
-                    writer.WriteLine($"//{labelBinding.ToString()}");
-                    if (labelBinding.ParentType == typeof(Foldout))
-                    {
-                        writer.WriteLine();                    
-                        writer.WriteLine($"myInspector.Q<{labelBinding.ParentType.Name}>(\"{labelBinding.ParentName}\")");
-                        writer.WriteLine($"\t.Q<{nameof(Label)}>(null, {nameof(Foldout)}.{nameof(Foldout.textUssClassName)}).bindingPath = \"{labelBinding.BindingPath}\";"); 
-                    }
-                    else
-                    {
-                        writer.WriteLine();                    
-                        writer.WriteLine($"myInspector.Q<{labelBinding.ParentType.Name}>(\"{labelBinding.ParentName}\")");
-                        writer.WriteLine($"\t.Q<{nameof(Label)}>(null, {labelBinding.ParentType.Name}.labelUssClassName).bindingPath = \"{labelBinding.BindingPath}\";"); 
-                    }
-
-                    writer.WriteLine();
-
-                }
-                
-                writer.WriteLine("//----------------------------------------------------------//");
-                writer.WriteLine();
-
-            }
+            GetLabelBindsCode(labelBindingDatas, ref writer);
+            
+            //Custom Conditionals for Editing
+            GetConditionalsCode(conditionalDatas, ref writer);
+            
+            writer.WriteLine("//----------------------------------------------------------//");
+            writer.WriteLine();
             
             writer.WriteLine("// Return the finished inspector UI");
             writer.WriteLine("return myInspector;");
             //End Function
             writer.EndBlock();
+            
+            //See if we should be adding the function to setup conditionals
+            TryAddConditionalMethod(conditionalDatas, ref writer);
             
             //End Class
             writer.EndBlock();
@@ -296,5 +293,158 @@ namespace Editor.Utilities.FileWriters
         }
 
         //================================================================================================================//
+
+        private static void GetButtonsCode(in string objectInstanceName, in IEnumerable<MethodInfo> buttons, ref Writer writer)
+        {
+            //Button callbacks
+            if (buttons.Any() == false) 
+                return;
+            
+            writer.WriteLine("//----------------------------------------------------------//");
+            writer.WriteLine("//Button Attribute Calls");
+            writer.WriteLine("//----------------------------------------------------------//");
+                
+            writer.WriteLine();
+            writer.WriteLine($"var classType = {objectInstanceName}.GetType();");
+            writer.WriteLine();
+                
+            foreach (var methodInfo in buttons)
+            {
+                var methodVarName = $"{methodInfo.Name}Method";
+                    
+                writer.WriteLine($"//{methodInfo.Name} Action Callback");
+                writer.WriteLine($"var {methodVarName} = classType.GetMethod(\"{methodInfo.Name}\", BindingFlags.NonPublic | BindingFlags.Instance);");
+                writer.WriteLine($"myInspector.Q<UnityEngine.UIElements.Button>(\"{methodInfo.Name}\").clickable.clicked += () =>");
+                writer.BeginBlock();
+                writer.WriteLine($"{methodVarName}.Invoke({objectInstanceName}, default);");
+                writer.EndBlock(';');
+                writer.WriteLine();
+            }
+                
+            writer.WriteLine();
+        }
+        
+        private static void GetLabelBindsCode(in IEnumerable<LabelBindingData> labelBindingDatas, ref Writer writer)
+        {
+            //Custom Label Bindings
+            if (labelBindingDatas.Any() == false) 
+                return;
+            
+            /*var labelClass = GroupBox.labelUssClassName;
+                    myInspector.Q<GroupBox>("Dynamic Group")
+                            .Q<Label>(null, labelClass).bindingPath = "myDynamicLabel";*/
+            writer.WriteLine("//----------------------------------------------------------//");
+            writer.WriteLine("//Custom Label Bindings");
+            writer.WriteLine("//----------------------------------------------------------//");
+            writer.WriteLine();
+
+            foreach (var labelBinding in labelBindingDatas)
+            {
+                   
+                writer.WriteLine($"//{labelBinding.ToString()}");
+                if (labelBinding.ParentType == typeof(Foldout))
+                {
+                    writer.WriteLine($"myInspector.Q<{labelBinding.ParentType.Name}>(\"{labelBinding.ParentName}\")");
+                    writer.WriteLine($"\t.Q<{nameof(Label)}>(null, {nameof(Foldout)}.{nameof(Foldout.textUssClassName)}).bindingPath = \"{labelBinding.BindingPath}\";"); 
+                }
+                else
+                {
+                    writer.WriteLine($"myInspector.Q<{labelBinding.ParentType.Name}>(\"{labelBinding.ParentName}\")");
+                    writer.WriteLine($"\t.Q<{nameof(Label)}>(null, {labelBinding.ParentType.Name}.labelUssClassName).bindingPath = \"{labelBinding.BindingPath}\";"); 
+                }
+
+                writer.WriteLine();
+
+            }
+                
+            writer.WriteLine();
+        }
+        
+        private static void GetConditionalsCode(in IEnumerable<ConditionalData> conditionalDatas, ref Writer writer)
+        {
+            writer.WriteLine("//----------------------------------------------------------//");
+            writer.WriteLine("//Conditional Editors");
+            writer.WriteLine("//----------------------------------------------------------//");
+            writer.WriteLine();
+            
+            writer.WriteLine("var applicationIsPlaying = Application.isPlaying;");
+            //Just Sort/Order by conditional type (name)
+            var groupedConditionals = conditionalDatas
+                .OrderBy(x => x.conditionalAttribute.GetType().Name)
+                .ToArray();
+
+            Type lastType = null;
+            bool addLabel = true;
+            foreach (var conditionalData in groupedConditionals)
+            {
+                if (lastType != conditionalData.conditionalAttribute.GetType())
+                {
+                    lastType = conditionalData.conditionalAttribute.GetType();
+                    addLabel = true;
+                    writer.WriteLine();
+                }
+                
+                switch (conditionalData.conditionalAttribute)
+                {
+                    case DisableInEditorModeAttribute _ :
+                        if(addLabel)
+                            writer.WriteLine("//Disable in Editor");
+                        writer.WriteLine($"SetEnabled(myInspector.Q<{conditionalData.ParentType.Name}>(\"{conditionalData.ParentName}\"), applicationIsPlaying, true);");
+                        break;
+                    case DisableInPlayModeAttribute _ :
+                        if(addLabel)
+                            writer.WriteLine("//Disable in Play mode");
+                        writer.WriteLine($"SetEnabled(myInspector.Q<{conditionalData.ParentType.Name}>(\"{conditionalData.ParentName}\"), applicationIsPlaying, false);");
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+
+
+                if (addLabel == false)
+                    continue;
+                
+                writer.WriteLine();
+                addLabel = false;
+            }
+                
+            writer.WriteLine();
+        }
+
+        private static void TryAddConditionalMethod(in IEnumerable<ConditionalData> conditionalDatas, ref Writer writer)
+        {
+            if (conditionalDatas.Any() == false)
+                return;
+            
+            writer.WriteLine();
+            writer.WriteLine("private void SetEnabled(in VisualElement visualElement, in bool playState, in bool desiredState)");
+            writer.BeginBlock();
+            
+            writer.WriteLine("var setState = playState == desiredState;");
+            writer.WriteLine();
+            writer.WriteLine("visualElement.focusable = setState;");
+            writer.WriteLine("visualElement.SetEnabled(setState);");
+            writer.WriteLine();
+
+            //FIXME Need to see if this is Fixable
+            /*writer.WriteLine("if(visualElement is TextInputBaseField<>)");
+            writer.WriteLine("visualElement.isReadOnly = setState;");
+            writer.WriteLine();*/
+
+            writer.WriteLine("if(setState == false)");
+            writer.indentLevel++;
+            writer.WriteLine("visualElement.AddToClassList(\"read-only\");");
+            writer.indentLevel--;
+            writer.WriteLine("else");
+            writer.indentLevel++;
+            writer.WriteLine("visualElement.RemoveFromClassList(\"read-only\");");
+            writer.indentLevel--;
+            writer.EndBlock();
+            
+            
+        }
+        
+        //================================================================================================================//
+
     }
 }
