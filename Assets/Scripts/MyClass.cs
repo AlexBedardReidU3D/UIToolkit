@@ -16,6 +16,7 @@ public class MyClass : MonoBehaviour
     public int myInt2;
 
     public bool thisIsAToggle;
+    public string testField;
 
     [InfoBox("Here is some information about this field"), BoxGroup("MyStructBox")]
     public MyStruct myStruct;

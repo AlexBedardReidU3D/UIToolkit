@@ -24,6 +24,7 @@
         <ui:Button name="DisableInEditorButton" text="DisableInEditorButton" display-tooltip-when-elided="true"/>
     </ui:Foldout>
     <uie:PropertyField name="thisIsAToggle" label="thisIsAToggle" binding-path="thisIsAToggle"/>
+    <ui:TextField name="testField" label="testField" binding-path="testField" pickingMode="ignore"/>
     <ui:GroupBox name="MyStructBox" text="MyStructBox" class="box-group">
         <ui:GroupBox class="info-box">
             <ui:VisualElement/>
