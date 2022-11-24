@@ -20,6 +20,7 @@ namespace Editor.Utilities.FileWriters
         public Type ParentType;
         public string ParentName;
         public string BindingPath;
+        public bool IsField;
 
         public override string ToString()
         {
@@ -72,6 +73,9 @@ namespace Editor.Utilities.FileWriters
         //Static Properties
         //================================================================================================================//
 
+        private static BindingFlags BindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.Static |
+                                                   BindingFlags.GetField | BindingFlags.GetProperty |
+                                                   BindingFlags.NonPublic | BindingFlags.Default;
         private static Dictionary<Type, List<MethodInfo>> s_ButtonFunctions;
         private static Dictionary<Type, List<LabelBindingData>> s_LabelBindingData;
         private static Dictionary<Type, List<ConditionalData>> s_ConditionalFieldData;
@@ -430,7 +434,8 @@ namespace Editor.Utilities.FileWriters
                 {
                     ParentType = GetElementAsType(elementType),
                     ParentName = elementName,
-                    BindingPath = bindingPath
+                    BindingPath = bindingPath,
+                    IsField = type.GetMember(bindingPath, BindingFlags).First().MemberType == MemberTypes.Field
                 });
                 
                 //We need to force add text here, otherwise a Groupbox will not add the label element
@@ -582,7 +587,8 @@ namespace Editor.Utilities.FileWriters
                     {
                         ParentType = GetElementAsType(fieldType),
                         ParentName = name,
-                        BindingPath = customBindingPath
+                        BindingPath = customBindingPath,
+                        IsField = type.GetMember(customBindingPath, BindingFlags).First().MemberType == MemberTypes.Field
                     });
                     assembly.Add($"label=\"{label}\"");
                 }

@@ -52,5 +52,10 @@ namespace Editor
 
             return hasCustomEditor;
         }
+
+        public static string GetSafeName(this Type type)
+        {
+            return type.FullName.Replace('+', '.');
+        }
     }
 }

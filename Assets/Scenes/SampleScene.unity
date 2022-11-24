@@ -538,18 +538,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48ec569d53c45274ebfcba44b130352a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  myTest1: assffThis is now working
+  myTest2: s
+  myTest3: asdkjnaa
   myDynamicLabel: Hello this is my Label
-  myInt: 0
-  myInt2: 1234567890
   m_MyFloat: 0
-  intArray: 00000000
-  intList: 00000000
-  myStructList:
-  - test: 0
-  - test: -8
-  myPropertyTestList:
-  - test: 0
-  myGameObject: {fileID: 0}
+  myInt2: 1234567890
+  thisIsAToggle: 0
+  testField: 
   myStruct:
     test: 0
   myStruct2:

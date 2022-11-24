@@ -12,6 +12,15 @@
 
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
     <Style src="project://database/Assets/Editor/Prototyping/NewUSSFile.uss?fileID=7433441132597879392&amp;guid=6900da3c74504df48882b65fbc801786&amp;type=3#NewUSSFile" />
+    <ui:GroupBox name="TitleGroup1" text="$CUSTOM BIND$" class="title-group">
+        <ui:TextField name="myTest1" label="myTest1" binding-path="myTest1" pickingMode="ignore"/>
+    </ui:GroupBox>
+    <ui:GroupBox name="TitleGroup2" text="$CUSTOM BIND$" class="title-group">
+        <ui:TextField name="myTest2" label="myTest2" binding-path="myTest2" pickingMode="ignore"/>
+    </ui:GroupBox>
+    <ui:GroupBox name="TitleGroup3" text="$CUSTOM BIND$" class="title-group">
+        <ui:TextField name="myTest3" label="myTest3" binding-path="myTest3" pickingMode="ignore"/>
+    </ui:GroupBox>
     <ui:GroupBox name="Dynamic Group" text="$CUSTOM BIND$" class="title-group">
         <ui:TextField name="myDynamicLabel" label="myDynamicLabel" binding-path="myDynamicLabel" pickingMode="ignore"/>
     </ui:GroupBox>

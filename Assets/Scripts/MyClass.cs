@@ -7,6 +7,19 @@ using UnityEngine;
 [GenerateUXML]
 public class MyClass : MonoBehaviour
 {
+
+    private string MyTest1 => myTest1 + " Other string information";
+    [SerializeField, TitleGroup("TitleGroup1", "$MyTest1")]
+    private string myTest1;
+    public string MyTest2 => myTest2;
+    [SerializeField, TitleGroup("TitleGroup2", "$MyTest2")]
+    private string myTest2;
+    
+    public string MyTest3 => myTest3;
+    [SerializeField, TitleGroup("TitleGroup3", "$MyTest3")]
+    private string myTest3;
+    
+    
     [SerializeField, TitleGroup("Dynamic Group", "$myDynamicLabel")]
     private string myDynamicLabel;
     

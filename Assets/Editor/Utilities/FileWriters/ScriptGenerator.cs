@@ -27,7 +27,8 @@ namespace Editor.Utilities.FileWriters
             in IEnumerable<LabelBindingData> labelBindingDatas,
             in IEnumerable<ConditionalData> conditionalDatas)
         {
-            //return;
+            //WARNING Do not uncomment this until things are setup for the custom binding
+            return;
             DirectoryInfo directoryInfo = new DirectoryInfo(Path.Combine(PATH, type.Name));
             
             if(directoryInfo.Exists == false)
@@ -86,7 +87,7 @@ namespace Editor.Utilities.FileWriters
             writer.WriteLine("using UnityEngine.UIElements;");
             writer.WriteLine();
             
-            writer.WriteLine($"[CustomEditor(typeof({type.Name}))]");
+            writer.WriteLine($"[CustomEditor(typeof({type.GetSafeName()}))]");
             
             // Begin class.
             writer.WriteLine($"public class @{className} : UnityEditor.Editor");
@@ -95,7 +96,7 @@ namespace Editor.Utilities.FileWriters
             // Default CreateInspectorGUI.
             writer.WriteLine("public override VisualElement CreateInspectorGUI()");
             writer.BeginBlock();
-            writer.WriteLine($"var {objectInstanceName}= ({type.Name})target;");
+            writer.WriteLine($"var {objectInstanceName}= ({type.GetSafeName()})target;");
             writer.WriteLine();
             writer.WriteLine("// Create a new VisualElement to be the root of our inspector UI");
             writer.WriteLine("VisualElement myInspector = new VisualElement();");
@@ -191,7 +192,8 @@ namespace Editor.Utilities.FileWriters
             return writer.buffer.ToString();
         }
 
-        private static string GenerateCustomPropertyDrawerCode(in Type type, in string className,
+        private static string GenerateCustomPropertyDrawerCode(in Type type, 
+            in string className,
             in IEnumerable<MethodInfo> buttons, 
             in IEnumerable<LabelBindingData> labelBindingDatas,
             in IEnumerable<ConditionalData> conditionalDatas)
@@ -213,7 +215,7 @@ namespace Editor.Utilities.FileWriters
             writer.WriteLine("using UnityEngine.UIElements;");
             writer.WriteLine();
             
-            writer.WriteLine($"[CustomPropertyDrawer(typeof({type.Name}))]");
+            writer.WriteLine($"[CustomPropertyDrawer(typeof({type.GetSafeName()}))]");
             
             // Begin class.
             writer.WriteLine($"public class @{className} : PropertyDrawer");
