@@ -13,7 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Editor.Utilities;
-
+using Editor;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
@@ -23,35 +23,8 @@ using UnityEngine.UIElements;
 [CustomEditor(typeof(MyClass))]
 public class @MyClassCustomInspector : UnityEditor.Editor
 {
-    //TODO Move CustomBindingData to its own script
-    //TODO Use IsField to divide the workload and storing into CustomBindingData
-    //TODO Add the new missing namespaces
-    //TODO Add the registered Callback
-    
-    private class CustomBindingData
-    {
-        public readonly VisualElement SavedElement;
-        public readonly MemberInfo MemberInfo;
-        public object CurrentValue;
-
-        public CustomBindingData(in VisualElement savedElement, in MemberInfo memberInfo, in object currentValue)
-        {
-            SavedElement = savedElement;
-            MemberInfo = memberInfo;
-            CurrentValue = currentValue;
-        }
-
-        public bool RequiresUpdate(in object newValue)
-        {
-            if (CurrentValue == null)
-                return true;
-            
-            return CurrentValue.Equals(newValue) == false;
-        }
-    }
-
     private List<CustomBindingData> savedBindings;
-    
+
     public override VisualElement CreateInspectorGUI()
     {
         var MyClassInstance= (MyClass)target;
@@ -62,8 +35,6 @@ public class @MyClassCustomInspector : UnityEditor.Editor
         // Load and clone a visual tree from UXML
         VisualTreeAsset visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/Editor/Custom Inspectors/MyClass/MyClassUXML.uxml");
         visualTree.CloneTree(myInspector);
-        
-        myInspector.RegisterCallback<UnityEngine.UIElements.KeyUpEvent>(new EventCallback<KeyUpEvent>(EventCallback));
 
         //----------------------------------------------------------//
         //Button Attribute Calls
@@ -89,21 +60,29 @@ public class @MyClassCustomInspector : UnityEditor.Editor
         //----------------------------------------------------------//
         //Custom Label Bindings
         //----------------------------------------------------------//
+
         savedBindings = new List<CustomBindingData>();
-        VisualElement savedElement = myInspector.Q<GroupBox>("TitleGroup3").Q<Label>(null, GroupBox.labelUssClassName);
-        MemberInfo savedMemberInfo = classType.GetMember("MyTest3", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Static).First(x => x !=null);
-        
-        savedBindings.Add(new CustomBindingData(savedElement, savedMemberInfo, default));
-        
-        savedElement = myInspector.Q<GroupBox>("TitleGroup2").Q<Label>(null, GroupBox.labelUssClassName);
-        savedMemberInfo = classType.GetMember("MyTest2", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Static).First(x => x !=null);
-        savedBindings.Add(new CustomBindingData(savedElement, savedMemberInfo, default));
-        
+        VisualElement savedElement;
+        MemberInfo savedMemberInfo;
+
+        myInspector.RegisterCallback<UnityEngine.UIElements.KeyUpEvent>(new EventCallback<KeyUpEvent>(OnKeyUpEvent));
+
         savedElement = myInspector.Q<GroupBox>("TitleGroup1").Q<Label>(null, GroupBox.labelUssClassName);
-        savedMemberInfo = classType.GetMember("MyTest1", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Static).First(x => x !=null);
+        savedMemberInfo = classType.GetFirstMember("MyTest1");
         savedBindings.Add(new CustomBindingData(savedElement, savedMemberInfo, default));
-        
-        EventCallback(null);
+
+        savedElement = myInspector.Q<GroupBox>("TitleGroup2").Q<Label>(null, GroupBox.labelUssClassName);
+        savedMemberInfo = classType.GetFirstMember("MyTest2");
+        savedBindings.Add(new CustomBindingData(savedElement, savedMemberInfo, default));
+
+        savedElement = myInspector.Q<GroupBox>("TitleGroup3").Q<Label>(null, GroupBox.labelUssClassName);
+        savedMemberInfo = classType.GetFirstMember("MyTest3");
+        savedBindings.Add(new CustomBindingData(savedElement, savedMemberInfo, default));
+
+        //Force Update the Labels once all connected
+        OnKeyUpEvent(default);
+
+        //----------------------------------------------------------//
 
         //<GroupBox>[Dynamic Group] BIND TO -> myDynamicLabel
         myInspector.Q<GroupBox>("Dynamic Group")
@@ -135,31 +114,9 @@ public class @MyClassCustomInspector : UnityEditor.Editor
         SetEnabled(myInspector.Q<Vector3Field>("myV3"), applicationIsPlaying, false);
 
         //----------------------------------------------------------//
-        savedElement = myInspector;
+
         // Return the finished inspector UI
         return myInspector;
-    }
-
-    private void EventCallback(KeyUpEvent evt)
-    {
-        var MyClassInstance = (MyClass)target;
-
-        foreach (var bindingData in savedBindings)
-        {
-            var newValue = bindingData.MemberInfo.GetValue(MyClassInstance);
-
-            if (bindingData.RequiresUpdate(newValue) == false)
-                continue;
-
-            switch (bindingData.SavedElement)
-            {
-                case Label label:
-                    label.text = (string)newValue;
-                    break;
-                default:
-                    throw new NotImplementedException($"{bindingData.SavedElement.GetType().Name} not supported");
-            }
-        }
     }
 
     private void SetEnabled(in VisualElement visualElement, in bool playState, in bool desiredState)
@@ -174,5 +131,27 @@ public class @MyClassCustomInspector : UnityEditor.Editor
         else
             visualElement.RemoveFromClassList("read-only");
     }
-    
+
+    private void OnKeyUpEvent(KeyUpEvent evt)
+    {
+        var MyClassInstance = (MyClass)target;
+
+        foreach (var bindingData in savedBindings)
+        {
+            var newValue = bindingData.MemberInfo.GetValue(MyClassInstance);
+
+            if (bindingData.RequiresUpdate(newValue) == false)
+            	continue;
+
+            switch (bindingData.SavedElement)
+            {
+                case Label label:
+                	label.text = (string)newValue;
+                	break;
+                default:
+                	throw new NotImplementedException($"{bindingData.SavedElement.GetType().Name} not yet supported");
+            }
+        }
+    }
+
 }

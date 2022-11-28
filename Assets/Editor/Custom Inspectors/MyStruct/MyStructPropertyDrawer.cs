@@ -9,6 +9,11 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Editor.Utilities;
+using Editor;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
@@ -18,6 +23,8 @@ using UnityEngine.UIElements;
 [CustomPropertyDrawer(typeof(MyStruct))]
 public class @MyStructPropertyDrawer : PropertyDrawer
 {
+    private List<CustomBindingData> savedBindings;
+
     public override VisualElement CreatePropertyGUI(SerializedProperty property)
     {
         // Create a new VisualElement to be the root of our inspector UI

@@ -4,10 +4,14 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 
-namespace Editor
+namespace Editor.Utilities
 {
     public static class TypeExtensions
     {
+        private static BindingFlags BIND_ATTRIBUTE = BindingFlags.Instance | BindingFlags.Public | BindingFlags.Static |
+                                                    BindingFlags.GetField | BindingFlags.GetProperty |
+                                                    BindingFlags.NonPublic | BindingFlags.Default;
+        
         private static Dictionary<Type, bool> s_TypeHasCustomInspectorDict;
         private static IEnumerable<Type> s_EditorAssemblyTypes;
         private static IEnumerable<CustomEditor> s_SavedCustomEditors;
@@ -56,6 +60,24 @@ namespace Editor
         public static string GetSafeName(this Type type)
         {
             return type.FullName.Replace('+', '.');
+        }
+
+        public static MemberInfo GetFirstMember(this Type type, in string memberName)
+        {
+            var outMember = type.GetMember(memberName, BIND_ATTRIBUTE)
+                .FirstOrDefault();
+
+            return outMember;
+        }
+        
+        public static bool IsField(this Type type, in string memberName)
+        {
+            var memberInfo = type.GetMember(memberName, BIND_ATTRIBUTE).FirstOrDefault();
+
+            if (memberInfo == null)
+                return false;
+
+            return memberInfo.MemberType == MemberTypes.Field;
         }
     }
 }

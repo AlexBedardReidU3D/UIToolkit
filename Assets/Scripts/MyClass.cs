@@ -15,7 +15,7 @@ public class MyClass : MonoBehaviour
     [SerializeField, TitleGroup("TitleGroup2", "$MyTest2")]
     private string myTest2;
     
-    public string MyTest3 => myTest3;
+    public string MyTest3() => myTest3;
     [SerializeField, TitleGroup("TitleGroup3", "$MyTest3")]
     private string myTest3;
     

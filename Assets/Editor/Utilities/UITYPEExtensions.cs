@@ -1,7 +1,7 @@
 ﻿using System;
 using Editor.Utilities.FileWriters;
 
-namespace Editor
+namespace Editor.Utilities
 {
     public static class UITYPEExtensions
     {
