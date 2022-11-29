@@ -84,6 +84,7 @@ public class @MyClassCustomInspector : UnityEditor.Editor
         MemberInfo memberInfo;
 
         myInspector.RegisterCallback<UnityEngine.UIElements.PointerMoveEvent>(new EventCallback<PointerMoveEvent>(UpdateConditionalEvent));
+        myInspector.RegisterCallback<UnityEngine.UIElements.ClickEvent>(new EventCallback<ClickEvent>(UpdateConditionalEvent));
 
         var applicationIsPlaying = Application.isPlaying;
 

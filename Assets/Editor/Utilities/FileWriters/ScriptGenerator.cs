@@ -381,6 +381,7 @@ namespace Editor.Utilities.FileWriters
                 writer.WriteLine("MemberInfo memberInfo;");
                 writer.WriteLine();
                 writer.WriteLine("myInspector.RegisterCallback<UnityEngine.UIElements.PointerMoveEvent>(new EventCallback<PointerMoveEvent>(UpdateConditionalEvent));");
+                writer.WriteLine("myInspector.RegisterCallback<UnityEngine.UIElements.ClickEvent>(new EventCallback<ClickEvent>(UpdateConditionalEvent));");
                 writer.WriteLine();
             }
             
