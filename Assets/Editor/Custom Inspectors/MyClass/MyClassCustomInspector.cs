@@ -94,8 +94,12 @@ public class @MyClassCustomInspector : UnityEditor.Editor
         savedConditionalBindings.Add(new ConditionalBinding(item, memberInfo, false));
 
         item = myInspector.Q<VisualElement>("item5");
-        memberInfo = classType.GetFirstMember("m_MyEnum");
+        memberInfo = classType.GetFirstMember("myEnum");
         savedConditionalBindings.Add(new ConditionalBinding(item, memberInfo,  MyEnum.ONE, false));
+
+        item = myInspector.Q<VisualElement>("item7");
+        memberInfo = classType.GetFirstMember("m_MySubEnum");
+        savedConditionalBindings.Add(new ConditionalBinding(item, memberInfo,  MyClass.MySubEnum.ONE, false));
 
 
         //Disable in Editor
@@ -115,8 +119,12 @@ public class @MyClassCustomInspector : UnityEditor.Editor
         savedConditionalBindings.Add(new ConditionalBinding(item, memberInfo, true));
 
         item = myInspector.Q<VisualElement>("item4");
-        memberInfo = classType.GetFirstMember("m_MyEnum");
+        memberInfo = classType.GetFirstMember("myEnum");
         savedConditionalBindings.Add(new ConditionalBinding(item, memberInfo,  MyEnum.ONE, true));
+
+        item = myInspector.Q<VisualElement>("item6");
+        memberInfo = classType.GetFirstMember("m_MySubEnum");
+        savedConditionalBindings.Add(new ConditionalBinding(item, memberInfo,  MyClass.MySubEnum.ONE, true));
 
         item = myInspector.Q<VisualElement>("DisableInEditorButton");
         memberInfo = classType.GetFirstMember("Condition3");

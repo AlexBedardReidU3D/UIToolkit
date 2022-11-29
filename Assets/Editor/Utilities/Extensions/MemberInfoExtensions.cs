@@ -8,7 +8,7 @@ namespace Editor.Utilities
         public static object GetValue(this MemberInfo memberInfo, object forObject)
         {
             if (memberInfo == null)
-                throw new NullReferenceException();
+                return default;
             
             switch (memberInfo.MemberType)
             {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
+using UnityEngine;
 
 namespace Editor.Utilities
 {
@@ -66,6 +67,9 @@ namespace Editor.Utilities
         {
             var outMember = type.GetMember(memberName, BIND_ATTRIBUTE)
                 .FirstOrDefault();
+            
+            if(outMember == null)
+                Debug.LogError($"Cannot find member {memberName} within {type.GetSafeName()}");
 
             return outMember;
         }

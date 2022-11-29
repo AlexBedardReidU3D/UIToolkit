@@ -9,7 +9,7 @@ namespace Editor.Utilities
             switch (@object)
             {
                 case Enum @enum:
-                    return $"{@enum.GetType().FullName}.{@enum}";
+                    return $"{@enum.GetType().GetSafeName()}.{@enum}";
                 case float single:
                     return $"{single}f";
                 default:

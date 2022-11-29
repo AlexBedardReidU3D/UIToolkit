@@ -15,6 +15,13 @@ public enum MyEnum
 [GenerateUXML]
 public class MyClass : MonoBehaviour
 {
+    public enum MySubEnum
+    {
+        NONE,
+        ONE,
+        TWO,
+        THREE
+    }
 
     [SerializeField]
     private bool condition1;
@@ -31,11 +38,19 @@ public class MyClass : MonoBehaviour
     private int item3;
     
     [SerializeField]
-    private MyEnum m_MyEnum;
-    [SerializeField, EnableIf("m_MyEnum", MyEnum.ONE)]
+    private MyEnum myEnum;
+    [SerializeField, EnableIf("myEnum", MyEnum.ONE)]
     private int item4;
-    [SerializeField, DisableIf("m_MyEnum", MyEnum.ONE)]
+    [SerializeField, DisableIf("myEnum", MyEnum.ONE)]
     private int item5;
+    
+    
+    [SerializeField]
+    private MySubEnum m_MySubEnum;
+    [SerializeField, EnableIf("m_MySubEnum", MySubEnum.ONE)]
+    private int item6;
+    [SerializeField, DisableIf("m_MySubEnum", MySubEnum.ONE)]
+    private int item7;
 
     /*private string MyTest1 => myTest1 + " Other string information";
     [SerializeField, TitleGroup("TitleGroup1", "$MyTest1")]

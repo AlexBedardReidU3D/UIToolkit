@@ -17,9 +17,12 @@
     <uie:PropertyField name="condition2" label="condition2" binding-path="condition2"/>
     <uie:IntegerField name="item2" label="item2" value="" binding-path="item2"/>
     <uie:IntegerField name="item3" label="item3" value="" binding-path="item3"/>
-    <uie:EnumField name="m_MyEnum" label="m_MyEnum" binding-path="m_MyEnum" type="MyEnum, Assembly-CSharp"/>
+    <uie:EnumField name="myEnum" label="myEnum" binding-path="myEnum" type="MyEnum, Assembly-CSharp"/>
     <uie:IntegerField name="item4" label="item4" value="" binding-path="item4"/>
     <uie:IntegerField name="item5" label="item5" value="" binding-path="item5"/>
+    <uie:EnumField name="m_MySubEnum" label="m_MySubEnum" binding-path="m_MySubEnum" type="MyClass+MySubEnum, Assembly-CSharp"/>
+    <uie:IntegerField name="item6" label="item6" value="" binding-path="item6"/>
+    <uie:IntegerField name="item7" label="item7" value="" binding-path="item7"/>
     <ui:GroupBox name="Dynamic Group" text="$CUSTOM BIND$" class="title-group">
         <ui:TextField name="myDynamicLabel" label="myDynamicLabel" binding-path="myDynamicLabel" pickingMode="ignore"/>
     </ui:GroupBox>
