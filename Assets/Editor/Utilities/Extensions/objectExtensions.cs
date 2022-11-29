@@ -1,0 +1,20 @@
+﻿using System;
+
+namespace Editor.Utilities
+{
+    public static class objectExtensions
+    {
+        public static string ToStaticString(this object @object)
+        {
+            switch (@object)
+            {
+                case Enum @enum:
+                    return $"{@enum.GetType().FullName}.{@enum}";
+                case float single:
+                    return $"{single}f";
+                default:
+                    return @object.ToString();
+            }
+        }
+    }
+}

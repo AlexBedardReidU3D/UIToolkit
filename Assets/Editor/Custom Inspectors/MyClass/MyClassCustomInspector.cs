@@ -23,7 +23,8 @@ using UnityEngine.UIElements;
 [CustomEditor(typeof(MyClass))]
 public class @MyClassCustomInspector : UnityEditor.Editor
 {
-    private List<CustomBindingData> savedBindings;
+    private List<SimpleBinding> savedBindings;
+    private List<ConditionalBinding> savedConditionalBindings;
 
     public override VisualElement CreateInspectorGUI()
     {
@@ -61,29 +62,6 @@ public class @MyClassCustomInspector : UnityEditor.Editor
         //Custom Label Bindings
         //----------------------------------------------------------//
 
-        savedBindings = new List<CustomBindingData>();
-        VisualElement savedElement;
-        MemberInfo savedMemberInfo;
-
-        myInspector.RegisterCallback<UnityEngine.UIElements.KeyUpEvent>(new EventCallback<KeyUpEvent>(OnKeyUpEvent));
-
-        savedElement = myInspector.Q<GroupBox>("TitleGroup1").Q<Label>(null, GroupBox.labelUssClassName);
-        savedMemberInfo = classType.GetFirstMember("MyTest1");
-        savedBindings.Add(new CustomBindingData(savedElement, savedMemberInfo, default));
-
-        savedElement = myInspector.Q<GroupBox>("TitleGroup2").Q<Label>(null, GroupBox.labelUssClassName);
-        savedMemberInfo = classType.GetFirstMember("MyTest2");
-        savedBindings.Add(new CustomBindingData(savedElement, savedMemberInfo, default));
-
-        savedElement = myInspector.Q<GroupBox>("TitleGroup3").Q<Label>(null, GroupBox.labelUssClassName);
-        savedMemberInfo = classType.GetFirstMember("MyTest3");
-        savedBindings.Add(new CustomBindingData(savedElement, savedMemberInfo, default));
-
-        //Force Update the Labels once all connected
-        OnKeyUpEvent(default);
-
-        //----------------------------------------------------------//
-
         //<GroupBox>[Dynamic Group] BIND TO -> myDynamicLabel
         myInspector.Q<GroupBox>("Dynamic Group")
         	.Q<Label>(null, GroupBox.labelUssClassName).bindingPath = "myDynamicLabel";
@@ -101,17 +79,49 @@ public class @MyClassCustomInspector : UnityEditor.Editor
         //Conditional Editors
         //----------------------------------------------------------//
 
+        savedConditionalBindings = new List<ConditionalBinding>();
+        VisualElement item;
+        MemberInfo memberInfo;
+
+        myInspector.RegisterCallback<UnityEngine.UIElements.PointerMoveEvent>(new EventCallback<PointerMoveEvent>(UpdateConditionalEvent));
+
         var applicationIsPlaying = Application.isPlaying;
 
-        //Disable in Editor
-        SetEnabled(myInspector.Q<Button>("DisableInEditorButton"), applicationIsPlaying, true);
+        //Disable If
+        item = myInspector.Q<VisualElement>("item3");
+        memberInfo = classType.GetFirstMember("Condition3");
+        savedConditionalBindings.Add(new ConditionalBinding(item, memberInfo, false));
 
+        item = myInspector.Q<VisualElement>("item5");
+        memberInfo = classType.GetFirstMember("m_MyEnum");
+        savedConditionalBindings.Add(new ConditionalBinding(item, memberInfo,  MyEnum.ONE, false));
+
+
+        //Disable in Editor
         SetEnabled(myInspector.Q<LongField>("myLong"), applicationIsPlaying, true);
 
         //Disable in Play mode
         SetEnabled(myInspector.Q<Vector2Field>("myV2"), applicationIsPlaying, false);
-
         SetEnabled(myInspector.Q<Vector3Field>("myV3"), applicationIsPlaying, false);
+
+        //Enable If
+        item = myInspector.Q<VisualElement>("item1");
+        memberInfo = classType.GetFirstMember("condition1");
+        savedConditionalBindings.Add(new ConditionalBinding(item, memberInfo, true));
+
+        item = myInspector.Q<VisualElement>("item2");
+        memberInfo = classType.GetFirstMember("Condition2");
+        savedConditionalBindings.Add(new ConditionalBinding(item, memberInfo, true));
+
+        item = myInspector.Q<VisualElement>("item4");
+        memberInfo = classType.GetFirstMember("m_MyEnum");
+        savedConditionalBindings.Add(new ConditionalBinding(item, memberInfo,  MyEnum.ONE, true));
+
+        item = myInspector.Q<VisualElement>("DisableInEditorButton");
+        memberInfo = classType.GetFirstMember("Condition3");
+        savedConditionalBindings.Add(new ConditionalBinding(item, memberInfo, true));
+
+        UpdateConditionalEvent(default);
 
         //----------------------------------------------------------//
 
@@ -119,9 +129,9 @@ public class @MyClassCustomInspector : UnityEditor.Editor
         return myInspector;
     }
 
-    private void SetEnabled(in VisualElement visualElement, in bool playState, in bool desiredState)
+    private void SetEnabled(in VisualElement visualElement, in bool currentResult, in bool expectedResult)
     {
-        var setState = playState == desiredState;
+        var setState = currentResult.Equals(expectedResult);
 
         visualElement.focusable = setState;
         visualElement.SetEnabled(setState);
@@ -132,25 +142,19 @@ public class @MyClassCustomInspector : UnityEditor.Editor
             visualElement.RemoveFromClassList("read-only");
     }
 
-    private void OnKeyUpEvent(KeyUpEvent evt)
+    private void UpdateConditionalEvent(EventBase _)
     {
         var MyClassInstance = (MyClass)target;
 
-        foreach (var bindingData in savedBindings)
+        foreach (var bindingData in savedConditionalBindings)
         {
             var newValue = bindingData.MemberInfo.GetValue(MyClassInstance);
 
             if (bindingData.RequiresUpdate(newValue) == false)
             	continue;
 
-            switch (bindingData.SavedElement)
-            {
-                case Label label:
-                	label.text = (string)newValue;
-                	break;
-                default:
-                	throw new NotImplementedException($"{bindingData.SavedElement.GetType().Name} not yet supported");
-            }
+            bindingData.CurrentValue = newValue;
+            SetEnabled(bindingData.SavedElement,newValue.Equals(bindingData.TargetValue), bindingData.ExpectedResult);
         }
     }
 

@@ -261,6 +261,28 @@ namespace Editor.Utilities.FileWriters
                         return;
                 }
             }
+            //Enum Type
+            //----------------------------------------------------------//
+
+            if (fieldInfo.FieldType.IsSubclassOf(typeof(Enum)))
+            {
+                //<uie:EnumField label="MyEnum" type="MyNamespace.MyEnum, AssemblyName" />
+                ElementBuilder(type, ref writer, 
+                    UITYPE.UIE, 
+                    "EnumField", 
+                    fieldInfo.Name,
+                    conditional,
+                    types: new []
+                    {
+                        fieldInfo.FieldType.FullName,
+                        fieldInfo.FieldType.Assembly.GetName().Name
+                    },
+                    label:label,
+                    bindingPath:fieldInfo.Name, 
+                    isReadonly: readOnly);
+                return;
+            }
+            
             //Value Type
             //----------------------------------------------------------//
 

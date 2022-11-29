@@ -23,7 +23,8 @@ using UnityEngine.UIElements;
 [CustomPropertyDrawer(typeof(MyStruct))]
 public class @MyStructPropertyDrawer : PropertyDrawer
 {
-    private List<CustomBindingData> savedBindings;
+    private List<ConditionalBinding> savedBindings;
+    private List<ConditionalBinding> savedConditionalBindings;
 
     public override VisualElement CreatePropertyGUI(SerializedProperty property)
     {
@@ -54,7 +55,6 @@ public class @MyStructPropertyDrawer : PropertyDrawer
         //Conditional Editors
         //----------------------------------------------------------//
 
-        var applicationIsPlaying = Application.isPlaying;
 
         //----------------------------------------------------------//
 

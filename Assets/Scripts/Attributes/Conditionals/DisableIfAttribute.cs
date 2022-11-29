@@ -7,22 +7,19 @@ namespace Attributes
     [Conditional("UNITY_EDITOR")]
     public class DisableIfAttribute : ConditionalBaseAttribute
     {
-        public readonly string FieldName;
+        public readonly string Condition;
+        public readonly object ExpectedValue;
         
-        public DisableIfAttribute(in string fieldName)
+        public DisableIfAttribute(string condition)
         {
-            FieldName = fieldName;
-            
-            //TODO Need to add something like this to the generated script
-            //TODO Might need to subscribe to some sort of event callback to prompt the update
-            /*var field = target.GetType().GetField("thisIsAToggle",
-            BindingFlags.Instance | 
-            BindingFlags.Public | 
-            BindingFlags.NonPublic | 
-            BindingFlags.Static);
-
-        myInspector.Q<Toggle>("thisIsAToggle").RegisterCallback();
-        SetEnabled(myInspector.Q<TextField>("testField"), (bool)field.GetValue(target), true);*/
+            Condition = condition;
+            ExpectedValue = null;
+        }
+        
+        public DisableIfAttribute(string condition, object expectedValue)
+        {
+            Condition = condition;
+            ExpectedValue = expectedValue;
         }
     }
 }

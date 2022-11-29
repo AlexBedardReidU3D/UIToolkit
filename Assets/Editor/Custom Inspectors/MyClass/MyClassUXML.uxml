@@ -12,15 +12,14 @@
 
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
     <Style src="project://database/Assets/Editor/Prototyping/NewUSSFile.uss?fileID=7433441132597879392&amp;guid=6900da3c74504df48882b65fbc801786&amp;type=3#NewUSSFile" />
-    <ui:GroupBox name="TitleGroup1" text="$CUSTOM BIND$" class="title-group">
-        <ui:TextField name="myTest1" label="myTest1" binding-path="myTest1" pickingMode="ignore"/>
-    </ui:GroupBox>
-    <ui:GroupBox name="TitleGroup2" text="$CUSTOM BIND$" class="title-group">
-        <ui:TextField name="myTest2" label="myTest2" binding-path="myTest2" pickingMode="ignore"/>
-    </ui:GroupBox>
-    <ui:GroupBox name="TitleGroup3" text="$CUSTOM BIND$" class="title-group">
-        <ui:TextField name="myTest3" label="myTest3" binding-path="myTest3" pickingMode="ignore"/>
-    </ui:GroupBox>
+    <uie:PropertyField name="condition1" label="condition1" binding-path="condition1"/>
+    <uie:IntegerField name="item1" label="item1" value="" binding-path="item1"/>
+    <uie:PropertyField name="condition2" label="condition2" binding-path="condition2"/>
+    <uie:IntegerField name="item2" label="item2" value="" binding-path="item2"/>
+    <uie:IntegerField name="item3" label="item3" value="" binding-path="item3"/>
+    <uie:EnumField name="m_MyEnum" label="m_MyEnum" binding-path="m_MyEnum" type="MyEnum, Assembly-CSharp"/>
+    <uie:IntegerField name="item4" label="item4" value="" binding-path="item4"/>
+    <uie:IntegerField name="item5" label="item5" value="" binding-path="item5"/>
     <ui:GroupBox name="Dynamic Group" text="$CUSTOM BIND$" class="title-group">
         <ui:TextField name="myDynamicLabel" label="myDynamicLabel" binding-path="myDynamicLabel" pickingMode="ignore"/>
     </ui:GroupBox>

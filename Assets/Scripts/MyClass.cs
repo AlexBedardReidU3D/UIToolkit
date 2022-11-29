@@ -4,11 +4,40 @@ using System.Collections.Generic;
 using Attributes;
 using UnityEngine;
 
+public enum MyEnum
+{
+    NONE,
+    ONE,
+    TWO,
+    THREE
+}
+
 [GenerateUXML]
 public class MyClass : MonoBehaviour
 {
 
-    private string MyTest1 => myTest1 + " Other string information";
+    [SerializeField]
+    private bool condition1;
+    [SerializeField, EnableIf("condition1")]
+    private int item1;
+    private bool Condition2 => condition2;
+    [SerializeField]
+    private bool condition2;
+    [SerializeField, EnableIf("Condition2")]
+    private int item2;
+    
+    private bool Condition3() => condition2;
+    [SerializeField, DisableIf("Condition3")]
+    private int item3;
+    
+    [SerializeField]
+    private MyEnum m_MyEnum;
+    [SerializeField, EnableIf("m_MyEnum", MyEnum.ONE)]
+    private int item4;
+    [SerializeField, DisableIf("m_MyEnum", MyEnum.ONE)]
+    private int item5;
+
+    /*private string MyTest1 => myTest1 + " Other string information";
     [SerializeField, TitleGroup("TitleGroup1", "$MyTest1")]
     private string myTest1;
     public string MyTest2 => myTest2;
@@ -17,7 +46,7 @@ public class MyClass : MonoBehaviour
     
     public string MyTest3() => myTest3;
     [SerializeField, TitleGroup("TitleGroup3", "$MyTest3")]
-    private string myTest3;
+    private string myTest3;*/
     
     
     [SerializeField, TitleGroup("Dynamic Group", "$myDynamicLabel")]
@@ -45,7 +74,7 @@ public class MyClass : MonoBehaviour
         
     }
     
-    [Button, FoldoutGroup("FoldoutGroup"), DisableInEditorMode]
+    [Button, FoldoutGroup("FoldoutGroup"), EnableIf("Condition3")]
     private void DisableInEditorButton()
     {
         Debug.Log("TestButton");

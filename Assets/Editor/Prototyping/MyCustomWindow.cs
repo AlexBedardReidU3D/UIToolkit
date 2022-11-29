@@ -23,13 +23,15 @@ public class MyCustomWindow : EditorWindow
         root.Add(label);
 
         // Import UXML
-        var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/Editor/MyCustomWindow.uxml");
+        var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/Editor/Prototyping/MyCustomWindow.uxml");
         VisualElement labelFromUXML = visualTree.Instantiate();
         root.Add(labelFromUXML);
+        
+        root.Add(new EnumField("Tst", MyEnum.ONE));
 
         // A stylesheet can be added to a VisualElement.
         // The style will be applied to the VisualElement and all of its children.
-        var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Assets/Editor/MyCustomWindow.uss");
+        var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Assets/Editor/Prototyping/MyCustomWindow.uss");
         VisualElement labelWithStyle = new Label("Hello World! With Style");
         labelWithStyle.styleSheets.Add(styleSheet);
         root.Add(labelWithStyle);

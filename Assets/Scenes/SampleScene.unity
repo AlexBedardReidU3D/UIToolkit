@@ -538,10 +538,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48ec569d53c45274ebfcba44b130352a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  myTest1: assffThis is now working
-  myTest2: s
-  myTest3: asdkjnaa
-  myDynamicLabel: Hello this is my Label
+  condition1: 1
+  item1: 0
+  condition2: 1
+  item2: 0
+  item3: 0
+  m_MyEnum: 0
+  item4: 0
+  item5: 0
+  myDynamicLabel: aasdfsdf
   m_MyFloat: 0
   myInt2: 1234567890
   thisIsAToggle: 0

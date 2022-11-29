@@ -23,4 +23,5 @@
         <ui:Label display-tooltip-when-elided="true" />
     </ui:GroupBox>
     <ui:TextField picking-mode="Ignore" label="Text Field" value="filler text" text="filler text" />
+    <uie:EnumField label="Enum" value="Center" />
 </ui:UXML>

@@ -98,7 +98,8 @@ namespace Editor.Utilities.FileWriters
             // Begin class.
             writer.WriteLine($"public class @{className} : UnityEditor.Editor");
             writer.BeginBlock();
-            writer.WriteLine("private List<CustomBindingData> savedBindings;");
+            writer.WriteLine($"private List<{nameof(SimpleBinding)}> savedBindings;");
+            writer.WriteLine($"private List<{nameof(ConditionalBinding)}> savedConditionalBindings;");
             writer.WriteLine();
             
             // Default CreateInspectorGUI.
@@ -121,7 +122,7 @@ namespace Editor.Utilities.FileWriters
             var needsEventMethod = GetLabelBindsCode(labelBindingDatas, ref writer);
 
             //Custom Conditionals for Editing
-            GetConditionalsCode(conditionalDatas, ref writer);
+            var needClickEventMethod = GetConditionalsCode(conditionalDatas, ref writer);
             
             writer.WriteLine("//----------------------------------------------------------//");
             writer.WriteLine();
@@ -132,10 +133,12 @@ namespace Editor.Utilities.FileWriters
             writer.EndBlock();
 
             //See if we should be adding the function to setup conditionals
-            TryAddConditionalMethod(conditionalDatas, ref writer);
+            TryAddSetEnabledMethod(conditionalDatas, ref writer);
             
             if(needsEventMethod)
-                TryAddKeyUpEvent(ref writer);
+                TryAddKeyUpEventMethod(ref writer);
+            if (needClickEventMethod)
+                TryAddConditionalEventMethod(ref writer);
             
             //End Class
             writer.EndBlock();
@@ -178,7 +181,8 @@ namespace Editor.Utilities.FileWriters
             writer.WriteLine($"public class @{className} : PropertyDrawer");
             writer.BeginBlock();
             
-            writer.WriteLine("private List<CustomBindingData> savedBindings;");
+            writer.WriteLine($"private List<{nameof(ConditionalBinding)}> savedBindings;");
+            writer.WriteLine($"private List<{nameof(ConditionalBinding)}> savedConditionalBindings;");
             writer.WriteLine();
             
             // Default CreateInspectorGUI.
@@ -235,7 +239,7 @@ namespace Editor.Utilities.FileWriters
             var needsEventMethod = GetLabelBindsCode(labelBindingDatas, ref writer);
             
             //Custom Conditionals for Editing
-            GetConditionalsCode(conditionalDatas, ref writer);
+            var needConditionalEvent = GetConditionalsCode(conditionalDatas, ref writer);
             
             writer.WriteLine("//----------------------------------------------------------//");
             writer.WriteLine();
@@ -246,10 +250,13 @@ namespace Editor.Utilities.FileWriters
             writer.EndBlock();
             
             //See if we should be adding the function to setup conditionals
-            TryAddConditionalMethod(conditionalDatas, ref writer);
+            TryAddSetEnabledMethod(conditionalDatas, ref writer);
 
             if(needsEventMethod)
-                TryAddKeyUpEvent(ref writer);
+                TryAddKeyUpEventMethod(ref writer);
+            
+            if (needConditionalEvent)
+                TryAddConditionalEventMethod(ref writer);
             
             //End Class
             writer.EndBlock();
@@ -309,7 +316,7 @@ namespace Editor.Utilities.FileWriters
             {
                 needsEventMethod = true;
                 
-                writer.WriteLine("savedBindings = new List<CustomBindingData>();");
+                writer.WriteLine($"savedBindings = new List<{nameof(SimpleBinding)}>();");
                 writer.WriteLine("VisualElement savedElement;");
                 writer.WriteLine("MemberInfo savedMemberInfo;");
                 writer.WriteLine();
@@ -319,7 +326,7 @@ namespace Editor.Utilities.FileWriters
                 {
                     writer.WriteLine($"savedElement = myInspector.Q<GroupBox>(\"{labelBinding.ParentName}\").Q<Label>(null, GroupBox.labelUssClassName);");
                     writer.WriteLine($"savedMemberInfo = classType.GetFirstMember(\"{labelBinding.BindingPath}\");");
-                    writer.WriteLine("savedBindings.Add(new CustomBindingData(savedElement, savedMemberInfo, default));");
+                    writer.WriteLine($"savedBindings.Add(new {nameof(SimpleBinding)}(savedElement, savedMemberInfo));");
                     writer.WriteLine();
                 }
                 
@@ -356,14 +363,35 @@ namespace Editor.Utilities.FileWriters
             return needsEventMethod;
         }
         
-        private static void GetConditionalsCode(in IEnumerable<ConditionalData> conditionalDatas, ref Writer writer)
+        private static bool GetConditionalsCode(in IEnumerable<ConditionalData> conditionalDatas, ref Writer writer)
         {
             writer.WriteLine("//----------------------------------------------------------//");
             writer.WriteLine("//Conditional Editors");
             writer.WriteLine("//----------------------------------------------------------//");
             writer.WriteLine();
+
+            //----------------------------------------------------------//
+
+            var needConditionalEvent = conditionalDatas.Any(x => x.conditionalAttribute is EnableIfAttribute ||
+                                                                 x.conditionalAttribute is DisableIfAttribute);
+            if (needConditionalEvent)
+            {
+                writer.WriteLine($"savedConditionalBindings = new List<{nameof(ConditionalBinding)}>();");
+                writer.WriteLine("VisualElement item;");
+                writer.WriteLine("MemberInfo memberInfo;");
+                writer.WriteLine();
+                writer.WriteLine("myInspector.RegisterCallback<UnityEngine.UIElements.PointerMoveEvent>(new EventCallback<PointerMoveEvent>(UpdateConditionalEvent));");
+                writer.WriteLine();
+            }
             
-            writer.WriteLine("var applicationIsPlaying = Application.isPlaying;");
+            if (conditionalDatas.Any(x => x.conditionalAttribute is DisableInEditorModeAttribute ||
+                                          x.conditionalAttribute is DisableInPlayModeAttribute))
+            {
+                writer.WriteLine("var applicationIsPlaying = Application.isPlaying;");
+            }
+            //----------------------------------------------------------//
+
+            
             //Just Sort/Order by conditional type (name)
             var groupedConditionals = conditionalDatas
                 .OrderBy(x => x.conditionalAttribute.GetType().Name)
@@ -392,6 +420,38 @@ namespace Editor.Utilities.FileWriters
                             writer.WriteLine("//Disable in Play mode");
                         writer.WriteLine($"SetEnabled(myInspector.Q<{conditionalData.ParentType.Name}>(\"{conditionalData.ParentName}\"), applicationIsPlaying, false);");
                         break;
+                    case EnableIfAttribute enableIfAttribute when enableIfAttribute.ExpectedValue != null:
+                        if(addLabel)
+                            writer.WriteLine("//Enable If");
+                        writer.WriteLine($"item = myInspector.Q<VisualElement>(\"{conditionalData.ParentName}\");");
+                        writer.WriteLine($"memberInfo = classType.GetFirstMember(\"{enableIfAttribute.Condition}\");");
+                        writer.WriteLine($"savedConditionalBindings.Add(new {nameof(ConditionalBinding)}(item, memberInfo,  {enableIfAttribute.ExpectedValue.ToStaticString()}, true));");
+                        writer.WriteLine();
+                        break;
+                    case DisableIfAttribute disableIfAttribute when disableIfAttribute.ExpectedValue != null:
+                        if(addLabel)
+                            writer.WriteLine("//Disable If");
+                        writer.WriteLine($"item = myInspector.Q<VisualElement>(\"{conditionalData.ParentName}\");");
+                        writer.WriteLine($"memberInfo = classType.GetFirstMember(\"{disableIfAttribute.Condition}\");");
+                        writer.WriteLine($"savedConditionalBindings.Add(new {nameof(ConditionalBinding)}(item, memberInfo,  {disableIfAttribute.ExpectedValue.ToStaticString()}, false));");
+                        writer.WriteLine();
+                        break;
+                    case EnableIfAttribute enableIfAttribute :
+                        if(addLabel)
+                            writer.WriteLine("//Enable If");
+                        writer.WriteLine($"item = myInspector.Q<VisualElement>(\"{conditionalData.ParentName}\");");
+                        writer.WriteLine($"memberInfo = classType.GetFirstMember(\"{enableIfAttribute.Condition}\");");
+                        writer.WriteLine($"savedConditionalBindings.Add(new {nameof(ConditionalBinding)}(item, memberInfo, true));");
+                        writer.WriteLine();
+                        break;
+                    case DisableIfAttribute disableIfAttribute:
+                        if(addLabel)
+                            writer.WriteLine("//Disable If");
+                        writer.WriteLine($"item = myInspector.Q<VisualElement>(\"{conditionalData.ParentName}\");");
+                        writer.WriteLine($"memberInfo = classType.GetFirstMember(\"{disableIfAttribute.Condition}\");");
+                        writer.WriteLine($"savedConditionalBindings.Add(new {nameof(ConditionalBinding)}(item, memberInfo, false));");
+                        writer.WriteLine();
+                        break;
                     default:
                         throw new NotImplementedException();
                 }
@@ -400,23 +460,28 @@ namespace Editor.Utilities.FileWriters
                 if (addLabel == false)
                     continue;
                 
-                writer.WriteLine();
+                //writer.WriteLine();
                 addLabel = false;
             }
-                
+            
+            if(needConditionalEvent)
+                writer.WriteLine("UpdateConditionalEvent(default);");
+            
             writer.WriteLine();
+
+            return needConditionalEvent;
         }
 
-        private static void TryAddConditionalMethod(in IEnumerable<ConditionalData> conditionalDatas, ref Writer writer)
+        private static void TryAddSetEnabledMethod(in IEnumerable<ConditionalData> conditionalDatas, ref Writer writer)
         {
             if (conditionalDatas.Any() == false)
                 return;
             
             writer.WriteLine();
-            writer.WriteLine("private void SetEnabled(in VisualElement visualElement, in bool playState, in bool desiredState)");
+            writer.WriteLine("private void SetEnabled(in VisualElement visualElement, in bool currentResult, in bool expectedResult)");
             writer.BeginBlock();
             
-            writer.WriteLine("var setState = playState == desiredState;");
+            writer.WriteLine("var setState = currentResult.Equals(expectedResult);");
             writer.WriteLine();
             writer.WriteLine("visualElement.focusable = setState;");
             writer.WriteLine("visualElement.SetEnabled(setState);");
@@ -440,7 +505,7 @@ namespace Editor.Utilities.FileWriters
             
         }
 
-        private static void TryAddKeyUpEvent(ref Writer writer)
+        private static void TryAddKeyUpEventMethod(ref Writer writer)
         {
             writer.WriteLine();
             writer.WriteLine("private void OnKeyUpEvent(KeyUpEvent evt)");
@@ -465,6 +530,29 @@ namespace Editor.Utilities.FileWriters
                     writer.EndBlock();
                 //End Foreach
                 writer.EndBlock();
+            //End Method
+            writer.EndBlock();
+            writer.WriteLine();
+        }
+        
+        private static void TryAddConditionalEventMethod(ref Writer writer)
+        {
+            writer.WriteLine();
+            writer.WriteLine("private void UpdateConditionalEvent(EventBase _)");
+            writer.BeginBlock();
+            writer.WriteLine("var MyClassInstance = (MyClass)target;");
+            writer.WriteLine();
+            writer.WriteLine("foreach (var bindingData in savedConditionalBindings)");
+            writer.BeginBlock();
+            writer.WriteLine("var newValue = bindingData.MemberInfo.GetValue(MyClassInstance);");
+            writer.WriteLine();
+            writer.WriteLine("if (bindingData.RequiresUpdate(newValue) == false)");
+            writer.WriteLine("\tcontinue;");
+            writer.WriteLine();
+            writer.WriteLine("bindingData.CurrentValue = newValue;");
+            writer.WriteLine("SetEnabled(bindingData.SavedElement,newValue.Equals(bindingData.TargetValue), bindingData.ExpectedResult);");
+            //End Foreach
+            writer.EndBlock();
             //End Method
             writer.EndBlock();
             writer.WriteLine();
