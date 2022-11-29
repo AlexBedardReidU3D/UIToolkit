@@ -38,133 +38,13 @@ public class @MyClassCustomInspector : UnityEditor.Editor
         visualTree.CloneTree(myInspector);
 
         //----------------------------------------------------------//
-        //Button Attribute Calls
-        //----------------------------------------------------------//
-
-        var classType = MyClassInstance.GetType();
-
-        //DisableInEditorButton Action Callback
-        var DisableInEditorButtonMethod = classType.GetMethod("DisableInEditorButton", BindingFlags.NonPublic | BindingFlags.Instance);
-        myInspector.Q<UnityEngine.UIElements.Button>("DisableInEditorButton").clickable.clicked += () =>
-        {
-            DisableInEditorButtonMethod.Invoke(MyClassInstance, default);
-        };
-
-        //TestButton2 Action Callback
-        var TestButton2Method = classType.GetMethod("TestButton2", BindingFlags.NonPublic | BindingFlags.Instance);
-        myInspector.Q<UnityEngine.UIElements.Button>("TestButton2").clickable.clicked += () =>
-        {
-            TestButton2Method.Invoke(MyClassInstance, default);
-        };
-
-
-        //----------------------------------------------------------//
-        //Custom Label Bindings
-        //----------------------------------------------------------//
-
-        //<GroupBox>[Dynamic Group] BIND TO -> myDynamicLabel
-        myInspector.Q<GroupBox>("Dynamic Group")
-        	.Q<Label>(null, GroupBox.labelUssClassName).bindingPath = "myDynamicLabel";
-
-        //<FloatField>[m_MyFloat] BIND TO -> myDynamicLabel
-        myInspector.Q<FloatField>("m_MyFloat")
-        	.Q<Label>(null, FloatField.labelUssClassName).bindingPath = "myDynamicLabel";
-
-        //<Foldout>[FoldoutGroup] BIND TO -> myDynamicLabel
-        myInspector.Q<Foldout>("FoldoutGroup")
-        	.Q<Label>(null, Foldout.textUssClassName).bindingPath = "myDynamicLabel";
-
-
-        //----------------------------------------------------------//
         //Conditional Editors
         //----------------------------------------------------------//
 
-        savedConditionalBindings = new List<ConditionalBinding>();
-        VisualElement item;
-        MemberInfo memberInfo;
-
-        myInspector.RegisterCallback<UnityEngine.UIElements.PointerMoveEvent>(new EventCallback<PointerMoveEvent>(UpdateConditionalEvent));
-        myInspector.RegisterCallback<UnityEngine.UIElements.ClickEvent>(new EventCallback<ClickEvent>(UpdateConditionalEvent));
-
-        var applicationIsPlaying = Application.isPlaying;
-
-        //Disable If
-        item = myInspector.Q<VisualElement>("item3");
-        memberInfo = classType.GetFirstMember("Condition3");
-        savedConditionalBindings.Add(new ConditionalBinding(item, memberInfo, false));
-
-        item = myInspector.Q<VisualElement>("item5");
-        memberInfo = classType.GetFirstMember("myEnum");
-        savedConditionalBindings.Add(new ConditionalBinding(item, memberInfo,  MyEnum.ONE, false));
-
-        item = myInspector.Q<VisualElement>("item7");
-        memberInfo = classType.GetFirstMember("m_MySubEnum");
-        savedConditionalBindings.Add(new ConditionalBinding(item, memberInfo,  MyClass.MySubEnum.ONE, false));
-
-
-        //Disable in Editor
-        SetEnabled(myInspector.Q<LongField>("myLong"), applicationIsPlaying, true);
-
-        //Disable in Play mode
-        SetEnabled(myInspector.Q<Vector2Field>("myV2"), applicationIsPlaying, false);
-        SetEnabled(myInspector.Q<Vector3Field>("myV3"), applicationIsPlaying, false);
-
-        //Enable If
-        item = myInspector.Q<VisualElement>("item1");
-        memberInfo = classType.GetFirstMember("condition1");
-        savedConditionalBindings.Add(new ConditionalBinding(item, memberInfo, true));
-
-        item = myInspector.Q<VisualElement>("item2");
-        memberInfo = classType.GetFirstMember("Condition2");
-        savedConditionalBindings.Add(new ConditionalBinding(item, memberInfo, true));
-
-        item = myInspector.Q<VisualElement>("item4");
-        memberInfo = classType.GetFirstMember("myEnum");
-        savedConditionalBindings.Add(new ConditionalBinding(item, memberInfo,  MyEnum.ONE, true));
-
-        item = myInspector.Q<VisualElement>("item6");
-        memberInfo = classType.GetFirstMember("m_MySubEnum");
-        savedConditionalBindings.Add(new ConditionalBinding(item, memberInfo,  MyClass.MySubEnum.ONE, true));
-
-        item = myInspector.Q<VisualElement>("DisableInEditorButton");
-        memberInfo = classType.GetFirstMember("Condition3");
-        savedConditionalBindings.Add(new ConditionalBinding(item, memberInfo, true));
-
-        UpdateConditionalEvent(default);
 
         //----------------------------------------------------------//
 
         // Return the finished inspector UI
         return myInspector;
     }
-
-    private void SetEnabled(in VisualElement visualElement, in bool currentResult, in bool expectedResult)
-    {
-        var setState = currentResult.Equals(expectedResult);
-
-        visualElement.focusable = setState;
-        visualElement.SetEnabled(setState);
-
-        if(setState == false)
-            visualElement.AddToClassList("read-only");
-        else
-            visualElement.RemoveFromClassList("read-only");
-    }
-
-    private void UpdateConditionalEvent(EventBase _)
-    {
-        var MyClassInstance = (MyClass)target;
-
-        foreach (var bindingData in savedConditionalBindings)
-        {
-            var newValue = bindingData.MemberInfo.GetValue(MyClassInstance);
-
-            if (bindingData.RequiresUpdate(newValue) == false)
-            	continue;
-
-            bindingData.CurrentValue = newValue;
-            SetEnabled(bindingData.SavedElement,newValue.Equals(bindingData.TargetValue), bindingData.ExpectedResult);
-        }
-    }
-
 }

@@ -373,11 +373,45 @@ namespace Editor.Utilities.FileWriters
                 var groups = groupsBase.GetPath().Split('/');
 
                 //FIXME For not, we are ignoring the sub-groups, as they still needs to be designed
+                //================================================================================================================//
                 if (groups.Length > 1)
                 {
+                    //Don't care about checking the last one, as that's the one we're meant to create/use
+                    for (int g = 0; g < groups.Length - 1; g++)
+                    {
+                        if (groupKeys.ContainsKey(groups[g]) == false)
+                            throw new MissingMemberException($"No group has been created with name {groups[g]}");
+                    }
                     //TODO Go through each layer
-                    throw new NotImplementedException("Layered groups are not yet supported");
+                    //Get the group name, this is used to group elements together
+                    var groupName = groupsBase.GetName();
+                    
+                    //See if we've already created the group, if not we'll have to add it
+                    if (groupKeys.TryGetValue(groupName, out var foundGroup) == false)
+                    {
+                        var groupData = new MemberGroupInfo
+                        {
+                            myGroupBaseAttribute = groupsBase,
+                            Objects = new List<object>
+                            {
+                                memberInfos[i]
+                            }
+                        };
+                        
+                        groupKeys.Add(groupName, groupData);
+                        groupKeys[groupsBase.GetParent()].Objects.Add(groupData);
+                    }
+                    else
+                    {
+                        if (groupsBase.GetType() != foundGroup.myGroupBaseAttribute.GetType())
+                        {
+                            throw new Exception($"Group {groupName} Cannot use {groupsBase.GetType()} as it already exists as {foundGroup.myGroupBaseAttribute.GetType()}");
+                        }
+
+                        foundGroup.Objects.Add(memberInfos[i]);
+                    }
                 }
+                //================================================================================================================//
                 else
                 {
                     //Get the group name, this is used to group elements together
@@ -409,7 +443,8 @@ namespace Editor.Utilities.FileWriters
                     }
 
                 }
-                
+                //================================================================================================================//
+
             }
 
             return outList;
@@ -431,8 +466,10 @@ namespace Editor.Utilities.FileWriters
                     case MethodInfo methodInfo:
                         GetMethodAsUxml(type, methodInfo, ref writer);
                         break;
-                    case MemberGroupInfo _:
-                        throw new NotImplementedException("Sub groups are not yet supported");
+                    case MemberGroupInfo subGroupMemberInfo:
+                        //throw new NotImplementedException("Sub groups are not yet supported");
+                        GetGroupUXML(type, ref writer, subGroupMemberInfo);
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(memberObject), memberObject, null);
                 }
