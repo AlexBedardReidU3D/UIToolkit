@@ -23,6 +23,13 @@ public class MyClass : MonoBehaviour
     private int subInt;
     [SerializeField, TitleGroup("Foldout/BoxGroup/TitleGroup")]
     private string anotherField;
+    
+    
+    [SerializeField]
+    [FoldoutGroup("Foldout2")]
+    [BoxGroup("Foldout2/BoxGroup")]
+    [TitleGroup("Foldout2/BoxGroup/TitleGroup")]
+    private string mystackedfield;
 
     /*[SerializeField]
     private bool condition1;

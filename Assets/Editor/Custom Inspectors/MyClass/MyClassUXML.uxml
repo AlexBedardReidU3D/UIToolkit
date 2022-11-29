@@ -21,4 +21,11 @@
             </ui:GroupBox>
         </ui:GroupBox>
     </ui:Foldout>
+    <ui:Foldout name="Foldout2" text="Foldout2" value="true" class="foldout-group">
+        <ui:GroupBox name="BoxGroup" text="BoxGroup" class="box-group">
+            <ui:GroupBox name="TitleGroup" text="TitleGroup" class="title-group">
+                <ui:TextField name="mystackedfield" label="mystackedfield" binding-path="mystackedfield" pickingMode="ignore"/>
+            </ui:GroupBox>
+        </ui:GroupBox>
+    </ui:Foldout>
 </ui:UXML>

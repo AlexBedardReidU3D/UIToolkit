@@ -352,98 +352,200 @@ namespace Editor.Utilities.FileWriters
             var outList = new List<object>();
             var groupKeys = new Dictionary<string, MemberGroupInfo>();
             //var groupedMembers = new Dictionary<GroupsBase, List<object>>();
-            
+
             for (int i = 0; i < memberInfos.Length; i++)
             {
                 //Don't want to store the constructor
-                if(memberInfos[i] is ConstructorInfo)
+                if (memberInfos[i] is ConstructorInfo)
                     continue;
-                
+
                 //Check to see if we want to use a group for this member
-                var groupsBase = memberInfos[i].GetCustomAttribute<GroupBaseAttribute>();
+                var allGroupAttributes = memberInfos[i].GetCustomAttributes<GroupBaseAttribute>()
+                    .ToArray();
 
                 //If there's no group, store it so we can retain the order
-                if (groupsBase == null)
+                if (allGroupAttributes.Length == 0)
                 {
                     outList.Add(memberInfos[i]);
                     continue;
                 }
 
-                //Look at the groups path, to see if it's a sub-group
-                var groups = groupsBase.GetPath().Split('/');
-
-                //FIXME For not, we are ignoring the sub-groups, as they still needs to be designed
-                //================================================================================================================//
-                if (groups.Length > 1)
+                if (allGroupAttributes.Length == 1)
                 {
-                    //Don't care about checking the last one, as that's the one we're meant to create/use
-                    for (int g = 0; g < groups.Length - 1; g++)
+                    var groupsBase = allGroupAttributes[0];
+                    //Look at the groups path, to see if it's a sub-group
+                    var groups = groupsBase.GetPath().Split('/');
+
+                    //FIXME For not, we are ignoring the sub-groups, as they still needs to be designed
+                    //================================================================================================================//
+                    if (groups.Length > 1)
                     {
-                        if (groupKeys.ContainsKey(groups[g]) == false)
-                            throw new MissingMemberException($"No group has been created with name {groups[g]}");
-                    }
-                    //TODO Go through each layer
-                    //Get the group name, this is used to group elements together
-                    var groupName = groupsBase.GetName();
-                    
-                    //See if we've already created the group, if not we'll have to add it
-                    if (groupKeys.TryGetValue(groupName, out var foundGroup) == false)
-                    {
-                        var groupData = new MemberGroupInfo
+                        //Don't care about checking the last one, as that's the one we're meant to create/use
+                        for (int g = 0; g < groups.Length - 1; g++)
                         {
-                            myGroupBaseAttribute = groupsBase,
-                            Objects = new List<object>
-                            {
-                                memberInfos[i]
-                            }
-                        };
-                        
-                        groupKeys.Add(groupName, groupData);
-                        groupKeys[groupsBase.GetParent()].Objects.Add(groupData);
-                    }
-                    else
-                    {
-                        if (groupsBase.GetType() != foundGroup.myGroupBaseAttribute.GetType())
-                        {
-                            throw new Exception($"Group {groupName} Cannot use {groupsBase.GetType()} as it already exists as {foundGroup.myGroupBaseAttribute.GetType()}");
+                            var pathCheck = string.Join('/', groups.Take(g + 1));
+                            if (groupKeys.ContainsKey(pathCheck) == false)
+                                throw new MissingMemberException($"No group has been created with name {pathCheck}");
                         }
 
-                        foundGroup.Objects.Add(memberInfos[i]);
+                        //TODO Go through each layer
+                        //Get the group name, this is used to group elements together
+                        var groupName = groupsBase.GetName();
+
+                        //See if we've already created the group, if not we'll have to add it
+                        if (groupKeys.TryGetValue(groupsBase.GetPath(), out var foundGroup) == false)
+                        {
+                            var groupData = new MemberGroupInfo
+                            {
+                                myGroupBaseAttribute = groupsBase,
+                                Objects = new List<object>
+                                {
+                                    memberInfos[i]
+                                }
+                            };
+
+                            groupKeys.Add(groupsBase.GetPath(), groupData);
+                            var parentPath = groupsBase.GetParentPath();
+                            groupKeys[parentPath].Objects.Add(groupData);
+                        }
+                        else
+                        {
+                            if (groupsBase.GetType() != foundGroup.myGroupBaseAttribute.GetType())
+                            {
+                                throw new Exception(
+                                    $"Group {groupName} Cannot use {groupsBase.GetType()} as it already exists as {foundGroup.myGroupBaseAttribute.GetType()}");
+                            }
+
+                            foundGroup.Objects.Add(memberInfos[i]);
+                        }
                     }
+                    //================================================================================================================//
+                    else
+                    {
+                        //Get the group name, this is used to group elements together
+                        var groupName = groupsBase.GetName();
+
+                        //See if we've already created the group, if not we'll have to add it
+                        if (groupKeys.TryGetValue(groupsBase.GetPath(), out var foundGroup) == false)
+                        {
+                            var groupData = new MemberGroupInfo
+                            {
+                                myGroupBaseAttribute = groupsBase,
+                                Objects = new List<object>
+                                {
+                                    memberInfos[i]
+                                }
+                            };
+
+                            groupKeys.Add(groupsBase.GetPath(), groupData);
+                            outList.Add(groupData);
+                        }
+                        else
+                        {
+                            if (groupsBase.GetType() != foundGroup.myGroupBaseAttribute.GetType())
+                            {
+                                throw new Exception(
+                                    $"Group {groupName} Cannot use {groupsBase.GetType()} as it already exists as {foundGroup.myGroupBaseAttribute.GetType()}");
+                            }
+
+                            foundGroup.Objects.Add(memberInfos[i]);
+                        }
+
+                    }
+                    //================================================================================================================//
                 }
-                //================================================================================================================//
                 else
                 {
-                    //Get the group name, this is used to group elements together
-                    var groupName = groupsBase.GetName();
-                    
-                    //See if we've already created the group, if not we'll have to add it
-                    if (groupKeys.TryGetValue(groupName, out var foundGroup) == false)
+                    //TODO Navigate all the group attributes, creating the groups
+                    //TODO Add the member to the last group specified
+                    for (int g = 0; g < allGroupAttributes.Length; g++)
                     {
-                        var groupData = new MemberGroupInfo
-                        {
-                            myGroupBaseAttribute = groupsBase,
-                            Objects = new List<object>
-                            {
-                                memberInfos[i]
-                            }
-                        };
+                        var isLastGroup = g == allGroupAttributes.Length - 1;
                         
-                        groupKeys.Add(groupName, groupData);
-                        outList.Add(groupData);
-                    }
-                    else
-                    {
-                        if (groupsBase.GetType() != foundGroup.myGroupBaseAttribute.GetType())
+                        var groupsBase = allGroupAttributes[g];
+                        //Look at the groups path, to see if it's a sub-group
+                        var groups = groupsBase.GetPath().Split('/');
+
+                        //FIXME For not, we are ignoring the sub-groups, as they still needs to be designed
+                        //================================================================================================================//
+                        if (groups.Length > 1)
                         {
-                            throw new Exception($"Group {groupName} Cannot use {groupsBase.GetType()} as it already exists as {foundGroup.myGroupBaseAttribute.GetType()}");
+                            //Don't care about checking the last one, as that's the one we're meant to create/use
+                            for (int gg = 0; gg < groups.Length - 1; gg++)
+                            {
+                                var pathCheck = string.Join('/', groups.Take(gg + 1));
+                                if (groupKeys.ContainsKey(pathCheck) == false)
+                                    throw new MissingMemberException($"No group has been created with name {pathCheck}");
+                            }
+
+                            //TODO Go through each layer
+                            //Get the group name, this is used to group elements together
+                            var groupName = groupsBase.GetName();
+
+                            //See if we've already created the group, if not we'll have to add it
+                            if (groupKeys.TryGetValue(groupsBase.GetPath(), out var foundGroup) == false)
+                            {
+                                var groupData = new MemberGroupInfo
+                                {
+                                    myGroupBaseAttribute = groupsBase,
+                                    Objects = new List<object>()
+                                };
+                                
+                                if(isLastGroup)
+                                    groupData.Objects.Add(memberInfos[i]);
+
+                                groupKeys.Add(groupsBase.GetPath(), groupData);
+                                groupKeys[groupsBase.GetParentPath()].Objects.Add(groupData);
+                            }
+                            else
+                            {
+                                if (groupsBase.GetType() != foundGroup.myGroupBaseAttribute.GetType())
+                                {
+                                    throw new Exception(
+                                        $"Group {groupName} Cannot use {groupsBase.GetType()} as it already exists as {foundGroup.myGroupBaseAttribute.GetType()}");
+                                }
+
+                                if(isLastGroup)
+                                    foundGroup.Objects.Add(memberInfos[i]);
+                            }
                         }
+                        //================================================================================================================//
+                        else
+                        {
+                            //Get the group name, this is used to group elements together
+                            var groupName = groupsBase.GetName();
 
-                        foundGroup.Objects.Add(memberInfos[i]);
+                            //See if we've already created the group, if not we'll have to add it
+                            if (groupKeys.TryGetValue(groupsBase.GetPath(), out var foundGroup) == false)
+                            {
+                                var groupData = new MemberGroupInfo
+                                {
+                                    myGroupBaseAttribute = groupsBase,
+                                    Objects = new List<object>()
+                                };
+                                if(isLastGroup)
+                                    groupData.Objects.Add(memberInfos[i]);
+
+                                groupKeys.Add(groupsBase.GetPath(), groupData);
+                                outList.Add(groupData);
+                            }
+                            else
+                            {
+                                if (groupsBase.GetType() != foundGroup.myGroupBaseAttribute.GetType())
+                                {
+                                    throw new Exception(
+                                        $"Group {groupName} Cannot use {groupsBase.GetType()} as it already exists as {foundGroup.myGroupBaseAttribute.GetType()}");
+                                }
+                               
+                                if(isLastGroup)
+                                    foundGroup.Objects.Add(memberInfos[i]);
+                            }
+
+                        }
                     }
-
                 }
-                //================================================================================================================//
+
+
 
             }
 
