@@ -12,50 +12,34 @@
 
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
     <Style src="project://database/Assets/Editor/Prototyping/NewUSSFile.uss?fileID=7433441132597879392&amp;guid=6900da3c74504df48882b65fbc801786&amp;type=3#NewUSSFile" />
-    <uie:PropertyField name="condition1" label="condition1" binding-path="condition1"/>
-    <uie:IntegerField name="item1" label="item1" value="" binding-path="item1"/>
-    <uie:PropertyField name="condition2" label="condition2" binding-path="condition2"/>
-    <uie:IntegerField name="item2" label="item2" value="" binding-path="item2"/>
-    <uie:IntegerField name="item3" label="item3" value="" binding-path="item3"/>
-    <uie:EnumField name="myEnum" label="myEnum" binding-path="myEnum" type="MyEnum, Assembly-CSharp"/>
-    <uie:IntegerField name="item4" label="item4" value="" binding-path="item4"/>
-    <uie:IntegerField name="item5" label="item5" value="" binding-path="item5"/>
-    <uie:EnumField name="m_MySubEnum" label="m_MySubEnum" binding-path="m_MySubEnum" type="MyClass+MySubEnum, Assembly-CSharp"/>
-    <uie:IntegerField name="item6" label="item6" value="" binding-path="item6"/>
-    <uie:IntegerField name="item7" label="item7" value="" binding-path="item7"/>
-    <ui:GroupBox name="Dynamic Group" text="$CUSTOM BIND$" class="title-group">
-        <ui:TextField name="myDynamicLabel" label="myDynamicLabel" binding-path="myDynamicLabel" pickingMode="ignore"/>
-    </ui:GroupBox>
-    <uie:FloatField name="m_MyFloat" label="$myDynamicLabel" value="" binding-path="m_MyFloat"/>
-    <ui:Foldout name="FoldoutGroup" text="$CUSTOM BIND$" value="true" class="foldout-group">
-        <ui:GroupBox class="display-as-string">
-            <ui:Label name="myInt2" text="My Number" display-tooltip-when-elided="true"/>
-            <ui:Label name="myInt2" text="" binding-path="myInt2" display-tooltip-when-elided="true"/>
+    <ui:Foldout name="Foldout" text="Foldout" value="true" class="foldout-group">
+        <uie:IntegerField name="rootInt" label="rootInt" value="" binding-path="rootInt"/>
+        <ui:GroupBox name="BoxGroup" text="BoxGroup" class="box-group">
+            <uie:IntegerField name="subInt" label="subInt" value="" binding-path="subInt"/>
+            <ui:GroupBox name="TitleGroup" text="TitleGroup" class="title-group">
+                <ui:TextField name="anotherField" label="anotherField" binding-path="anotherField" pickingMode="ignore"/>
+            </ui:GroupBox>
         </ui:GroupBox>
-        <ui:Button name="DisableInEditorButton" text="DisableInEditorButton" display-tooltip-when-elided="true"/>
     </ui:Foldout>
-    <uie:PropertyField name="thisIsAToggle" label="thisIsAToggle" binding-path="thisIsAToggle"/>
-    <ui:TextField name="testField" label="testField" binding-path="testField" pickingMode="ignore"/>
-    <ui:GroupBox name="MyStructBox" text="MyStructBox" class="box-group">
-        <ui:GroupBox class="info-box">
-            <ui:VisualElement/>
-            <ui:Label text="Here is some information about this field" display-tooltip-when-elided="true"/>
+    <ui:Foldout name="Foldout2" text="Foldout2" value="true" class="foldout-group">
+        <ui:GroupBox name="BoxGroup" text="BoxGroup" class="box-group">
+            <ui:GroupBox name="TitleGroup" text="TitleGroup" class="title-group">
+                <ui:TextField name="mystackedfield" label="mystackedfield" binding-path="mystackedfield" pickingMode="ignore"/>
+            </ui:GroupBox>
         </ui:GroupBox>
-        <uie:PropertyField name="myStruct" label="myStruct" binding-path="myStruct"/>
-    </ui:GroupBox>
-    <ui:GroupBox class="info-box">
-        <ui:VisualElement/>
-        <ui:Label text="Here is some information about this field" display-tooltip-when-elided="true"/>
-    </ui:GroupBox>
-    <ui:Foldout text="myStruct2">
-        <uie:PropertyField name="myStruct2" label="myStruct2" binding-path="myStruct2"/>
     </ui:Foldout>
-    <uie:PropertyField name="myPropertyTest" label="myPropertyTest" binding-path="myPropertyTest"/>
-    <uie:LongField name="myLong" label="myLong" value="" binding-path="myLong"/>
-    <uie:Vector2Field name="myV2" label="myV2" value="" binding-path="myV2"/>
-    <uie:Vector3Field name="myV3" label="myV3" value="" binding-path="myV3"/>
-    <uie:Vector4Field name="myV4" label="myV4" value="" binding-path="myV4"/>
-    <ui:GroupBox name="Row1">
-        <ui:Button name="TestButton2" text="My Custom Button" display-tooltip-when-elided="true"/>
-    </ui:GroupBox>
+    <ui:Foldout name="VerticalLayout" text="VerticalLayout" value="true" class="foldout-group">
+        <uie:IntegerField name="myInt" label="myInt" value="" binding-path="myInt"/>
+        <ui:GroupBox name="HorizontalGroup" class="horizontal-group">
+            <ui:GroupBox name="BoxGroup1">
+                <uie:FloatField name="myFloat1" label="myFloat1" value="" binding-path="myFloat1"/>
+            </ui:GroupBox>
+            <ui:GroupBox name="BoxGroup2">
+                <uie:FloatField name="myFloat2" label="myFloat2" value="" binding-path="myFloat2"/>
+                <ui:TextField name="myString" label="myString" binding-path="myString" pickingMode="ignore"/>
+                <uie:EnumField name="myEnum" label="myEnum" binding-path="myEnum" type="MyEnum, Assembly-CSharp"/>
+                <ui:Toggle name="myBool" label="myBool" binding-path="myBool"/>
+            </ui:GroupBox>
+        </ui:GroupBox>
+    </ui:Foldout>
 </ui:UXML>

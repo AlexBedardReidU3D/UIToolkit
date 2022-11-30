@@ -67,16 +67,14 @@ namespace Editor.Utilities.FileWriters
         public StringBuilder buffer;
         public int indentLevel;
 
-        public void BeginBlock()
+        public void Indent()
         {
-            //WriteIndent();
             ++indentLevel;
         }
 
-        public void EndBlock()
+        public void Outdent()
         {
             --indentLevel;
-            //WriteIndent();
         }
 
         public void WriteLine()

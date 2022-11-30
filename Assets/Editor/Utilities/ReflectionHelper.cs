@@ -23,23 +23,14 @@ namespace Editor.Utilities
         {
             if (obj == null)
                 throw new ArgumentNullException(nameof(obj));
-            Type objType = obj.GetType();
-            FieldInfo fieldInfo = GetPropertyInfo(objType, propertyName);
+            
+            var objType = obj.GetType();
+            var fieldInfo = GetPropertyInfo(objType, propertyName);
+            
             if (fieldInfo == null)
                 throw new ArgumentOutOfRangeException(nameof(propertyName), $"Couldn't find property {propertyName} in type {objType.FullName}");
+            
             return fieldInfo.GetValue(obj);
         }
-
-        /*public static void SetPropertyValue(this object obj, string propertyName, object val)
-        {
-            if (obj == null)
-                throw new ArgumentNullException("obj");
-            Type objType = obj.GetType();
-            PropertyInfo propInfo = GetPropertyInfo(objType, propertyName);
-            if (propInfo == null)
-                throw new ArgumentOutOfRangeException("propertyName", 
-                    string.Format("Couldn't find property {0} in type {1}", propertyName, objType.FullName));
-            propInfo.SetValue(obj, val, null);
-        }*/
     }
 }

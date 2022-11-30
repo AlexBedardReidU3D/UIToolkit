@@ -3,6 +3,10 @@ using UnityEngine.UIElements;
 
 namespace Editor.Utilities
 {
+    /// <summary>
+    /// Allows storing of expected results & TargetValue when a conditional attribute needs to determine if a field
+    /// should be active or not.
+    /// </summary>
     public class ConditionalBinding : SimpleBinding
     {
         public readonly bool ExpectedResult;

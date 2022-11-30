@@ -15,15 +15,37 @@ public enum MyEnum
 [GenerateUXML]
 public class MyClass : MonoBehaviour
 {
-    public enum MySubEnum
-    {
-        NONE,
-        ONE,
-        TWO,
-        THREE
-    }
 
+    [SerializeField, FoldoutGroup("Foldout")]
+    private int rootInt;
+    
+    [SerializeField, BoxGroup("Foldout/BoxGroup")]
+    private int subInt;
+    [SerializeField, TitleGroup("Foldout/BoxGroup/TitleGroup")]
+    private string anotherField;
+    
+    
     [SerializeField]
+    [FoldoutGroup("Foldout2")]
+    [BoxGroup("Foldout2/BoxGroup")]
+    [TitleGroup("Foldout2/BoxGroup/TitleGroup")]
+    private string mystackedfield;
+
+    [SerializeField, FoldoutGroup("VerticalLayout")]
+    private int myInt;
+    [HorizontalLayoutGroup("VerticalLayout/HorizontalGroup")]
+    [SerializeField, VerticalLayoutGroup("VerticalLayout/HorizontalGroup/BoxGroup1")]
+    private float myFloat1;
+    [SerializeField, VerticalLayoutGroup("VerticalLayout/HorizontalGroup/BoxGroup2")]
+    private float myFloat2;
+    [SerializeField, VerticalLayoutGroup("VerticalLayout/HorizontalGroup/BoxGroup2")]
+    private string myString;
+    [SerializeField, VerticalLayoutGroup("VerticalLayout/HorizontalGroup/BoxGroup2")]
+    private MyEnum myEnum;
+    [SerializeField, VerticalLayoutGroup("VerticalLayout/HorizontalGroup/BoxGroup2")]
+    private bool myBool;
+
+    /*[SerializeField]
     private bool condition1;
     [SerializeField, EnableIf("condition1")]
     private int item1;
@@ -50,7 +72,7 @@ public class MyClass : MonoBehaviour
     [SerializeField, EnableIf("m_MySubEnum", MySubEnum.ONE)]
     private int item6;
     [SerializeField, DisableIf("m_MySubEnum", MySubEnum.ONE)]
-    private int item7;
+    private int item7;*/
 
     /*private string MyTest1 => myTest1 + " Other string information";
     [SerializeField, TitleGroup("TitleGroup1", "$MyTest1")]
@@ -62,9 +84,9 @@ public class MyClass : MonoBehaviour
     public string MyTest3() => myTest3;
     [SerializeField, TitleGroup("TitleGroup3", "$MyTest3")]
     private string myTest3;*/
-    
-    
-    [SerializeField, TitleGroup("Dynamic Group", "$myDynamicLabel")]
+
+
+    /*[SerializeField, TitleGroup("Dynamic Group", "$myDynamicLabel")]
     private string myDynamicLabel;
     
     [SerializeField, CustomLabel("$myDynamicLabel")]
@@ -107,5 +129,5 @@ public class MyClass : MonoBehaviour
     public Vector2 myV2;
     [DisableInPlayMode]
     public Vector3 myV3;
-    public Vector4 myV4;
+    public Vector4 myV4;*/
 }

@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace Attributes
 {
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = true)]
     [Conditional("UNITY_EDITOR")]
     public class FoldoutGroupAttribute : GroupBaseAttribute
     {
@@ -14,6 +14,6 @@ namespace Attributes
             m_Label = label;
         }
 
-        public string GetLabel() => string.IsNullOrWhiteSpace(m_Label) ? GetName() : m_Label;
+        public string GetLabel() => string.IsNullOrWhiteSpace(m_Label) ? Name : m_Label;
     }
 }
