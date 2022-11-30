@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define GENERATE_SCRIPTS
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,50 +15,41 @@ namespace Editor.Utilities.FileWriters
     public static class ScriptGenerator
     {
         private static readonly string PATH = Path.Combine(Application.dataPath, "Editor", "Custom Inspectors");
-        
-        //TODO Need to add this to get labels acting the way I want
-        /*var labelClass = GroupBox.labelUssClassName;
-        myInspector.Q<GroupBox>("Dynamic Group")
-                .Q<Label>(null, labelClass).bindingPath = "myDynamicLabel";*/
-        
+
         //ScriptGenerator Functions
         //================================================================================================================//
 
-        public static void TryCreateCustomEditor(in Type type, 
+        public static void CreateCustomEditor(in Type type, 
             in IEnumerable<MethodInfo> methodButtons, 
             in IEnumerable<LabelBindingData> labelBindingDatas,
             in IEnumerable<ConditionalData> conditionalDatas)
         {
-            //WARNING Do not uncomment this until things are setup for the custom binding
-            //return;
-            DirectoryInfo directoryInfo = new DirectoryInfo(Path.Combine(PATH, type.Name));
+#if GENERATE_SCRIPTS
+            var directoryInfo = new DirectoryInfo(Path.Combine(PATH, type.Name));
             
             if(directoryInfo.Exists == false)
                 directoryInfo.Create();
 
             string className;
 
-            /*//If the file already exists, don't touch it
-            if (directoryInfo.GetFiles(filename).Length > 0)
-                return;*/
-
             string code;
+            //If this uses a UnityEngine.Component, we can use a Custom Inspector
             if (type.IsSubclassOf(typeof(Component)))
             {
                 className = $"{type.Name}CustomInspector";
-                //TODO Create Custom Editor
                 code = GenerateCustomEditorCode(type, className, methodButtons, labelBindingDatas, conditionalDatas);
             }
+            //Otherwise Assume that we just need a property drawer
             else
             {
                 className = $"{type.Name}PropertyDrawer";
-                //TODO Create Property Drawer
                 code = GenerateCustomPropertyDrawerCode(type, className, methodButtons, labelBindingDatas, conditionalDatas);
             }
 
-            string filename = $"{className}.cs";
+            var filename = $"{className}.cs";
             var path = Path.Combine(directoryInfo.FullName, filename);
             File.WriteAllText(path, code);
+#endif
         }
 
         //Code Generation Functions
@@ -80,18 +73,7 @@ namespace Editor.Utilities.FileWriters
                 new Version(0,0,1).ToString(),
                 nameof(ScriptGenerator)));
             // Usings.
-            writer.WriteLine("using System;");
-            writer.WriteLine("using System.Collections.Generic;");
-            writer.WriteLine("using System.Linq;");
-            writer.WriteLine("using Editor.Utilities;");
-            writer.WriteLine("using Editor;");
-            
-            writer.WriteLine("using System.Reflection;");
-            writer.WriteLine("using UnityEditor;");
-            writer.WriteLine("using UnityEngine;");
-            writer.WriteLine("using UnityEditor.UIElements;");
-            writer.WriteLine("using UnityEngine.UIElements;");
-            writer.WriteLine();
+            GetUsings(ref writer);
             
             writer.WriteLine($"[CustomEditor(typeof({type.GetSafeName()}))]");
             
@@ -107,13 +89,7 @@ namespace Editor.Utilities.FileWriters
             writer.BeginBlock();
             writer.WriteLine($"var {objectInstanceName}= ({type.GetSafeName()})target;");
             writer.WriteLine();
-            writer.WriteLine("// Create a new VisualElement to be the root of our inspector UI");
-            writer.WriteLine("VisualElement myInspector = new VisualElement();");
-            writer.WriteLine("myInspector.Add(new Label(\"This is a custom inspector\"));");
-            writer.WriteLine("// Load and clone a visual tree from UXML");
-            writer.WriteLine($"VisualTreeAsset visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(\"Assets/Editor/Custom Inspectors/{type.Name}/{type.Name}UXML.uxml\");");
-            writer.WriteLine("visualTree.CloneTree(myInspector);");
-            writer.WriteLine();
+            SetupInspector(type, ref writer);
 
             //Button callbacks
             GetButtonsCode(objectInstanceName, buttons, ref writer);
@@ -132,6 +108,9 @@ namespace Editor.Utilities.FileWriters
             //End Function
             writer.EndBlock();
 
+            //Add Other Functions
+            //----------------------------------------------------------//
+            
             //See if we should be adding the function to setup conditionals
             TryAddSetEnabledMethod(conditionalDatas, ref writer);
             
@@ -140,6 +119,8 @@ namespace Editor.Utilities.FileWriters
             if (needClickEventMethod)
                 TryAddConditionalEventMethod(ref writer);
             
+            //----------------------------------------------------------//
+
             //End Class
             writer.EndBlock();
             
@@ -161,19 +142,9 @@ namespace Editor.Utilities.FileWriters
             writer.WriteLine(WriterHelper.MakeAutoGeneratedCodeHeader("UXML Generator",
                 new Version(0,0,1).ToString(),
                 nameof(ScriptGenerator)));
-            // Usings.
-            writer.WriteLine("using System;");
-            writer.WriteLine("using System.Collections.Generic;");
-            writer.WriteLine("using System.Linq;");
-            writer.WriteLine("using Editor.Utilities;");
-            writer.WriteLine("using Editor;");
             
-            writer.WriteLine("using System.Reflection;");
-            writer.WriteLine("using UnityEditor;");
-            writer.WriteLine("using UnityEngine;");
-            writer.WriteLine("using UnityEditor.UIElements;");
-            writer.WriteLine("using UnityEngine.UIElements;");
-            writer.WriteLine();
+            // Usings.
+            GetUsings(ref writer);
             
             writer.WriteLine($"[CustomPropertyDrawer(typeof({type.GetSafeName()}))]");
             
@@ -188,13 +159,8 @@ namespace Editor.Utilities.FileWriters
             // Default CreateInspectorGUI.
             writer.WriteLine("public override VisualElement CreatePropertyGUI(SerializedProperty property)");
             writer.BeginBlock();
-            writer.WriteLine("// Create a new VisualElement to be the root of our inspector UI");
-            writer.WriteLine("VisualElement myInspector = new VisualElement();");
-            writer.WriteLine("myInspector.Add(new Label(\"This is a custom inspector\"));");
-            writer.WriteLine("// Load and clone a visual tree from UXML");
-            writer.WriteLine($"VisualTreeAsset visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(\"Assets/Editor/Custom Inspectors/{type.Name}/{type.Name}UXML.uxml\");");
-            writer.WriteLine("visualTree.CloneTree(myInspector);");
-            writer.WriteLine("");
+
+            SetupInspector(type, ref writer);
             
             //Button callbacks
             if (buttons.Any())
@@ -248,7 +214,10 @@ namespace Editor.Utilities.FileWriters
             writer.WriteLine("return myInspector;");
             //End Function
             writer.EndBlock();
-            
+
+            //Add Other Functions
+            //----------------------------------------------------------//
+
             //See if we should be adding the function to setup conditionals
             TryAddSetEnabledMethod(conditionalDatas, ref writer);
 
@@ -257,6 +226,8 @@ namespace Editor.Utilities.FileWriters
             
             if (needConditionalEvent)
                 TryAddConditionalEventMethod(ref writer);
+
+            //----------------------------------------------------------//
             
             //End Class
             writer.EndBlock();
@@ -264,7 +235,41 @@ namespace Editor.Utilities.FileWriters
             return writer.buffer.ToString();
         }
 
+
+        //Generate Code
         //================================================================================================================//
+        
+        private static void GetUsings(ref Writer writer)
+        {
+            writer.WriteLine("using System;");
+            writer.WriteLine("using System.Collections.Generic;");
+            writer.WriteLine("using System.Linq;");
+            writer.WriteLine("using Editor.Utilities;");
+            writer.WriteLine("using Editor;");
+            
+            writer.WriteLine("using System.Reflection;");
+            writer.WriteLine("using UnityEditor;");
+            writer.WriteLine("using UnityEngine;");
+            writer.WriteLine("using UnityEditor.UIElements;");
+            writer.WriteLine("using UnityEngine.UIElements;");
+            writer.WriteLine();
+        }
+
+        //Generate Body Code
+        //================================================================================================================//
+
+        #region Generate Body Code
+
+        private static void SetupInspector(in Type type, ref Writer writer)
+        {
+            writer.WriteLine("// Create a new VisualElement to be the root of our inspector UI");
+            writer.WriteLine("VisualElement myInspector = new VisualElement();");
+            writer.WriteLine("myInspector.Add(new Label(\"This is a custom inspector\"));");
+            writer.WriteLine("// Load and clone a visual tree from UXML");
+            writer.WriteLine($"VisualTreeAsset visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(\"Assets/Editor/Custom Inspectors/{type.Name}/{type.Name}UXML.uxml\");");
+            writer.WriteLine("visualTree.CloneTree(myInspector);");
+            writer.WriteLine();
+        }
 
         private static void GetButtonsCode(in string objectInstanceName, in IEnumerable<MethodInfo> buttons, ref Writer writer)
         {
@@ -473,6 +478,13 @@ namespace Editor.Utilities.FileWriters
             return needConditionalEvent;
         }
 
+        #endregion //Generate Body Code
+
+        //Add new Methods
+        //================================================================================================================//
+
+        #region Add New Methods
+
         private static void TryAddSetEnabledMethod(in IEnumerable<ConditionalData> conditionalDatas, ref Writer writer)
         {
             if (conditionalDatas.Any() == false)
@@ -488,19 +500,10 @@ namespace Editor.Utilities.FileWriters
             writer.WriteLine("visualElement.SetEnabled(setState);");
             writer.WriteLine();
 
-            //FIXME Need to see if this is Fixable
-            /*writer.WriteLine("if(visualElement is TextInputBaseField<>)");
-            writer.WriteLine("visualElement.isReadOnly = setState;");
-            writer.WriteLine();*/
-
             writer.WriteLine("if(setState == false)");
-            writer.indentLevel++;
-            writer.WriteLine("visualElement.AddToClassList(\"read-only\");");
-            writer.indentLevel--;
+            writer.WriteLine("\tvisualElement.AddToClassList(\"read-only\");");
             writer.WriteLine("else");
-            writer.indentLevel++;
-            writer.WriteLine("visualElement.RemoveFromClassList(\"read-only\");");
-            writer.indentLevel--;
+            writer.WriteLine("\tvisualElement.RemoveFromClassList(\"read-only\");");
             writer.EndBlock();
             
             
@@ -511,26 +514,26 @@ namespace Editor.Utilities.FileWriters
             writer.WriteLine();
             writer.WriteLine("private void OnKeyUpEvent(KeyUpEvent evt)");
             writer.BeginBlock();
-                writer.WriteLine("var MyClassInstance = (MyClass)target;");
-                writer.WriteLine();
-                writer.WriteLine("foreach (var bindingData in savedBindings)");
-                writer.BeginBlock();
-                    writer.WriteLine("var newValue = bindingData.MemberInfo.GetValue(MyClassInstance);");
-                    writer.WriteLine();
-                    writer.WriteLine("if (bindingData.RequiresUpdate(newValue) == false)");
-                    writer.WriteLine("\tcontinue;");
-                    writer.WriteLine();
-                    writer.WriteLine("switch (bindingData.SavedElement)");
-                    writer.BeginBlock();
-                        writer.WriteLine("case Label label:");
-                        writer.WriteLine("\tlabel.text = (string)newValue;");
-                        writer.WriteLine("\tbreak;");
-                        writer.WriteLine("default:");
-                        writer.WriteLine("\tthrow new NotImplementedException($\"{bindingData.SavedElement.GetType().Name} not yet supported\");");
-                    //End Switch
-                    writer.EndBlock();
-                //End Foreach
-                writer.EndBlock();
+            writer.WriteLine("var MyClassInstance = (MyClass)target;");
+            writer.WriteLine();
+            writer.WriteLine("foreach (var bindingData in savedBindings)");
+            writer.BeginBlock();
+            writer.WriteLine("var newValue = bindingData.MemberInfo.GetValue(MyClassInstance);");
+            writer.WriteLine();
+            writer.WriteLine("if (bindingData.RequiresUpdate(newValue) == false)");
+            writer.WriteLine("\tcontinue;");
+            writer.WriteLine();
+            writer.WriteLine("switch (bindingData.SavedElement)");
+            writer.BeginBlock();
+            writer.WriteLine("case Label label:");
+            writer.WriteLine("\tlabel.text = (string)newValue;");
+            writer.WriteLine("\tbreak;");
+            writer.WriteLine("default:");
+            writer.WriteLine("\tthrow new NotImplementedException($\"{bindingData.SavedElement.GetType().Name} not yet supported\");");
+            //End Switch
+            writer.EndBlock();
+            //End Foreach
+            writer.EndBlock();
             //End Method
             writer.EndBlock();
             writer.WriteLine();
@@ -558,6 +561,8 @@ namespace Editor.Utilities.FileWriters
             writer.EndBlock();
             writer.WriteLine();
         }
+
+        #endregion //Add New Methods
         
         //================================================================================================================//
 

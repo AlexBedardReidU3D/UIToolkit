@@ -3,6 +3,10 @@ using UnityEngine.UIElements;
 
 namespace Editor.Utilities
 {
+    /// <summary>
+    /// Used by Generated code to store references to Visual Elements & the members its meant to bind with.
+    /// By default, the CurrentValue is equal to default. This allows an immediate update when requested.
+    /// </summary>
     public class SimpleBinding
     {
             public readonly VisualElement SavedElement;

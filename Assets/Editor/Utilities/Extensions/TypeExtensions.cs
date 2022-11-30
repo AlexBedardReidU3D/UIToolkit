@@ -58,11 +58,22 @@ namespace Editor.Utilities
             return hasCustomEditor;
         }
 
+        /// <summary>
+        /// Gets Type Fullname with the + char replaced with .
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public static string GetSafeName(this Type type)
         {
             return type.FullName.Replace('+', '.');
         }
 
+        /// <summary>
+        /// This function is used by generated code
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="memberName"></param>
+        /// <returns></returns>
         public static MemberInfo GetFirstMember(this Type type, in string memberName)
         {
             var outMember = type.GetMember(memberName, BIND_ATTRIBUTE)
