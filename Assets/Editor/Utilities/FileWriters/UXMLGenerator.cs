@@ -364,6 +364,9 @@ namespace Editor.Utilities.FileWriters
 
         private static List<object> TryGetGroupedMembers(MemberInfo[] memberInfos)
         {
+            var outList = new List<object>();
+            var groupKeys = new Dictionary<string, MemberGroupInfo>();
+            
             //----------------------------------------------------------//
 
             bool ContainsPathGroups(in GroupBaseAttribute groupBaseAttribute, in Dictionary<string, MemberGroupInfo> groups)
@@ -379,10 +382,43 @@ namespace Editor.Utilities.FileWriters
 
                 return true;
             }
+
             //----------------------------------------------------------//
 
-            var outList = new List<object>();
-            var groupKeys = new Dictionary<string, MemberGroupInfo>();
+            void AddElementToGroup(in string groupName, in string groupPath, in GroupBaseAttribute groupsBase, object toAdd, string groupParentPath = null)
+            {
+                //See if we've already created the group, if not we'll have to add it
+                if (groupKeys.TryGetValue(groupPath, out var foundGroup) == false)
+                {
+                    var groupData = new MemberGroupInfo
+                    {
+                        myGroupBaseAttribute = groupsBase,
+                        Objects = new List<object>()
+                    };
+                    
+                    if(toAdd != null)
+                        groupData.Objects.Add(toAdd);
+
+                    groupKeys.Add(groupPath, groupData);
+                    if(groupParentPath == null) outList.Add(groupData);
+                    else groupKeys[groupParentPath].Objects.Add(groupData);
+                }
+                else
+                {
+                    if (groupsBase.GetType() != foundGroup.myGroupBaseAttribute.GetType())
+                    {
+                        throw new Exception(
+                            $"Group {groupName} Cannot use {groupsBase.GetType()} as it already exists as {foundGroup.myGroupBaseAttribute.GetType()}");
+                    }
+
+                    if(toAdd != null)
+                        foundGroup.Objects.Add(toAdd);
+                }
+            }
+            
+            //----------------------------------------------------------//
+
+
             //var groupedMembers = new Dictionary<GroupsBase, List<object>>();
 
             for (int i = 0; i < memberInfos.Length; i++)
@@ -419,7 +455,8 @@ namespace Editor.Utilities.FileWriters
                     //================================================================================================================//
                     if (groupsBase.HasSubGroups && ContainsPathGroups(groupsBase, groupKeys))
                     {
-                        //TODO Go through each layer
+                        AddElementToGroup(groupName, groupPath, groupsBase, memberInfos[i], groupParentPath);
+                        /*//TODO Go through each layer
                         //Get the group name, this is used to group elements together
                         
 
@@ -447,13 +484,13 @@ namespace Editor.Utilities.FileWriters
                             }
 
                             foundGroup.Objects.Add(memberInfos[i]);
-                        }
+                        }*/
                     }
                     //================================================================================================================//
                     else
                     {
-
-                        //See if we've already created the group, if not we'll have to add it
+                        AddElementToGroup(groupName, groupPath, groupsBase, memberInfos[i]);
+                        /*//See if we've already created the group, if not we'll have to add it
                         if (groupKeys.TryGetValue(groupPath, out var foundGroup) == false)
                         {
                             var groupData = new MemberGroupInfo
@@ -477,7 +514,7 @@ namespace Editor.Utilities.FileWriters
                             }
 
                             foundGroup.Objects.Add(memberInfos[i]);
-                        }
+                        }*/
 
                     }
                     //================================================================================================================//
@@ -500,7 +537,9 @@ namespace Editor.Utilities.FileWriters
                             string groupPath = groupsBase.Path;
                             string groupParentPath = groupsBase.ParentPath;
                             
-                            //See if we've already created the group, if not we'll have to add it
+                            AddElementToGroup(groupName, groupPath, groupsBase, isLastGroup ? memberInfos[i] : null, groupParentPath);
+                            
+                            /*//See if we've already created the group, if not we'll have to add it
                             if (groupKeys.TryGetValue(groupPath, out var foundGroup) == false)
                             {
                                 var groupData = new MemberGroupInfo
@@ -525,14 +564,16 @@ namespace Editor.Utilities.FileWriters
 
                                 if(isLastGroup)
                                     foundGroup.Objects.Add(memberInfos[i]);
-                            }
+                            }*/
                         }
                         //================================================================================================================//
                         else
                         {
                             string groupPath = groupsBase.Path;
-                            
-                            //See if we've already created the group, if not we'll have to add it
+
+                            AddElementToGroup(groupName, groupPath, groupsBase, isLastGroup ? memberInfos[i] : null);
+
+                            /*//See if we've already created the group, if not we'll have to add it
                             if (groupKeys.TryGetValue(groupPath, out var foundGroup) == false)
                             {
                                 var groupData = new MemberGroupInfo
@@ -556,7 +597,7 @@ namespace Editor.Utilities.FileWriters
                                
                                 if(isLastGroup)
                                     foundGroup.Objects.Add(memberInfos[i]);
-                            }
+                            }*/
 
                         }
                     }
