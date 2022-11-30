@@ -1,5 +1,5 @@
 ﻿using System;
-using Attributes;
+using UIToolkit.Attributes;
 using UnityEngine;
 
 [Serializable, GenerateUXML]

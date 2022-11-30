@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Attributes;
+using UIToolkit.Attributes;
 using UnityEngine;
 
 public enum MyEnum
