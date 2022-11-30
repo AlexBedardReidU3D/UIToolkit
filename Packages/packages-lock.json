@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "com.miniproject.uitoolkitattributes": {
-      "version": "file:../com.miniproject.uitoolkitattributes",
+      "version": "file:C:/Repos/UIToolkitAttributes",
       "depth": 0,
       "source": "local",
       "dependencies": {}
