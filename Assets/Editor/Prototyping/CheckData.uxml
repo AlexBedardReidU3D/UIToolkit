@@ -5,8 +5,21 @@
         <uie:IntegerField label="Int Field" value="42" />
         <uie:IntegerField label="Int Field" value="42" />
     </ui:GroupBox>
-    <ui:GroupBox text="Label" class="box-group">
-        <uie:FloatField label="Float Field" value="42.2" />
+    <ui:GroupBox name="HorizontalGroup" style="flex-direction: row; flex-wrap: nowrap; flex-shrink: 1; flex-basis: auto; margin-left: 4px; margin-right: 4px; margin-top: 4px; margin-bottom: 4px; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0;">
+        <ui:GroupBox text="BoxGroup1" name="BoxGroup1" class="box-group" style="flex-wrap: nowrap; flex-shrink: 1; margin-left: 1px; margin-right: 1px; margin-top: 1px; margin-bottom: 1px;">
+            <uie:FloatField label="Float Field" value="42.2" style="width: 50%;" />
+        </ui:GroupBox>
+        <ui:GroupBox text="BoxGroup2" name="BoxGroup2" class="box-group" style="flex-shrink: 1; margin-left: 1px; margin-right: 1px; margin-top: 1px; margin-bottom: 1px;">
+            <uie:FloatField label="Float Field" value="42.2" />
+        </ui:GroupBox>
+    </ui:GroupBox>
+    <ui:GroupBox name="HorizontalGroup2" class="horizontal-group">
+        <ui:GroupBox text="BoxGroup1" name="BoxGroup1" class="box-group" style="flex-wrap: nowrap; flex-shrink: 1; margin-left: 1px; margin-right: 1px; margin-top: 1px; margin-bottom: 1px;">
+            <uie:FloatField label="Float Field" value="42.2" style="flex-shrink: 1; flex-grow: 1;" />
+        </ui:GroupBox>
+        <ui:GroupBox text="BoxGroup2" name="BoxGroup2" class="box-group" style="flex-shrink: 1; margin-left: 1px; margin-right: 1px; margin-top: 1px; margin-bottom: 1px;">
+            <uie:FloatField label="Float Field" value="42.2" />
+        </ui:GroupBox>
     </ui:GroupBox>
     <ui:GroupBox text="Test" class="title-group">
         <ui:Toggle label="Toggle" />

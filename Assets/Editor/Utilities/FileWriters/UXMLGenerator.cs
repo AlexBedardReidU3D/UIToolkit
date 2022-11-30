@@ -257,7 +257,6 @@ namespace Editor.Utilities.FileWriters
                         return;
                     default:
                         ElementBuilder(type, ref writer, UITYPE.UIE, "PropertyField", fieldInfo.Name,conditional, label:label, bindingPath:fieldInfo.Name, isReadonly: readOnly);
-
                         return;
                 }
             }
@@ -277,6 +276,22 @@ namespace Editor.Utilities.FileWriters
                         fieldInfo.FieldType.FullName,
                         fieldInfo.FieldType.Assembly.GetName().Name
                     },
+                    label:label,
+                    bindingPath:fieldInfo.Name, 
+                    isReadonly: readOnly);
+                return;
+            }
+
+            //Bool Type
+            //----------------------------------------------------------//
+            if (fieldInfo.FieldType == typeof(bool))
+            {
+                //<uie:EnumField label="MyEnum" type="MyNamespace.MyEnum, AssemblyName" />
+                ElementBuilder(type, ref writer, 
+                    UITYPE.UI, 
+                    "Toggle", 
+                    fieldInfo.Name,
+                    conditional,
                     label:label,
                     bindingPath:fieldInfo.Name, 
                     isReadonly: readOnly);
@@ -349,6 +364,23 @@ namespace Editor.Utilities.FileWriters
 
         private static List<object> TryGetGroupedMembers(MemberInfo[] memberInfos)
         {
+            //----------------------------------------------------------//
+
+            bool ContainsPathGroups(in GroupBaseAttribute groupBaseAttribute, in Dictionary<string, MemberGroupInfo> groups)
+            {
+                var groupPaths = groupBaseAttribute.Path.Split('/');
+                
+                for (int g = 0; g < groupPaths.Length - 1; g++)
+                {
+                    var pathCheck = string.Join('/', groupPaths.Take(g + 1));
+                    if (groups.ContainsKey(pathCheck) == false)
+                        throw new MissingMemberException($"No group has been created with name {pathCheck}");
+                }
+
+                return true;
+            }
+            //----------------------------------------------------------//
+
             var outList = new List<object>();
             var groupKeys = new Dictionary<string, MemberGroupInfo>();
             //var groupedMembers = new Dictionary<GroupsBase, List<object>>();
@@ -370,30 +402,29 @@ namespace Editor.Utilities.FileWriters
                     continue;
                 }
 
+                GroupBaseAttribute groupsBase;
+                string groupName;
+
+                //When there is a single group attribute on a Member
                 if (allGroupAttributes.Length == 1)
                 {
-                    var groupsBase = allGroupAttributes[0];
+                    groupsBase = allGroupAttributes[0];
+                    groupName = groupsBase.Name;
+                    var groupPath = groupsBase.Path;
+                    var groupParentPath = groupsBase.ParentPath;
+
                     //Look at the groups path, to see if it's a sub-group
-                    var groups = groupsBase.GetPath().Split('/');
 
                     //FIXME For not, we are ignoring the sub-groups, as they still needs to be designed
                     //================================================================================================================//
-                    if (groups.Length > 1)
+                    if (groupsBase.HasSubGroups && ContainsPathGroups(groupsBase, groupKeys))
                     {
-                        //Don't care about checking the last one, as that's the one we're meant to create/use
-                        for (int g = 0; g < groups.Length - 1; g++)
-                        {
-                            var pathCheck = string.Join('/', groups.Take(g + 1));
-                            if (groupKeys.ContainsKey(pathCheck) == false)
-                                throw new MissingMemberException($"No group has been created with name {pathCheck}");
-                        }
-
                         //TODO Go through each layer
                         //Get the group name, this is used to group elements together
-                        var groupName = groupsBase.GetName();
+                        
 
                         //See if we've already created the group, if not we'll have to add it
-                        if (groupKeys.TryGetValue(groupsBase.GetPath(), out var foundGroup) == false)
+                        if (groupKeys.TryGetValue(groupPath, out var foundGroup) == false)
                         {
                             var groupData = new MemberGroupInfo
                             {
@@ -404,9 +435,8 @@ namespace Editor.Utilities.FileWriters
                                 }
                             };
 
-                            groupKeys.Add(groupsBase.GetPath(), groupData);
-                            var parentPath = groupsBase.GetParentPath();
-                            groupKeys[parentPath].Objects.Add(groupData);
+                            groupKeys.Add(groupPath, groupData);
+                            groupKeys[groupParentPath].Objects.Add(groupData);
                         }
                         else
                         {
@@ -422,11 +452,9 @@ namespace Editor.Utilities.FileWriters
                     //================================================================================================================//
                     else
                     {
-                        //Get the group name, this is used to group elements together
-                        var groupName = groupsBase.GetName();
 
                         //See if we've already created the group, if not we'll have to add it
-                        if (groupKeys.TryGetValue(groupsBase.GetPath(), out var foundGroup) == false)
+                        if (groupKeys.TryGetValue(groupPath, out var foundGroup) == false)
                         {
                             var groupData = new MemberGroupInfo
                             {
@@ -437,7 +465,7 @@ namespace Editor.Utilities.FileWriters
                                 }
                             };
 
-                            groupKeys.Add(groupsBase.GetPath(), groupData);
+                            groupKeys.Add(groupPath, groupData);
                             outList.Add(groupData);
                         }
                         else
@@ -462,28 +490,18 @@ namespace Editor.Utilities.FileWriters
                     {
                         var isLastGroup = g == allGroupAttributes.Length - 1;
                         
-                        var groupsBase = allGroupAttributes[g];
-                        //Look at the groups path, to see if it's a sub-group
-                        var groups = groupsBase.GetPath().Split('/');
-
+                        groupsBase = allGroupAttributes[g];
+                        groupName = groupsBase.Name;
+                        
                         //FIXME For not, we are ignoring the sub-groups, as they still needs to be designed
                         //================================================================================================================//
-                        if (groups.Length > 1)
+                        if (groupsBase.HasSubGroups && ContainsPathGroups(groupsBase, groupKeys))
                         {
-                            //Don't care about checking the last one, as that's the one we're meant to create/use
-                            for (int gg = 0; gg < groups.Length - 1; gg++)
-                            {
-                                var pathCheck = string.Join('/', groups.Take(gg + 1));
-                                if (groupKeys.ContainsKey(pathCheck) == false)
-                                    throw new MissingMemberException($"No group has been created with name {pathCheck}");
-                            }
-
-                            //TODO Go through each layer
-                            //Get the group name, this is used to group elements together
-                            var groupName = groupsBase.GetName();
-
+                            string groupPath = groupsBase.Path;
+                            string groupParentPath = groupsBase.ParentPath;
+                            
                             //See if we've already created the group, if not we'll have to add it
-                            if (groupKeys.TryGetValue(groupsBase.GetPath(), out var foundGroup) == false)
+                            if (groupKeys.TryGetValue(groupPath, out var foundGroup) == false)
                             {
                                 var groupData = new MemberGroupInfo
                                 {
@@ -494,8 +512,8 @@ namespace Editor.Utilities.FileWriters
                                 if(isLastGroup)
                                     groupData.Objects.Add(memberInfos[i]);
 
-                                groupKeys.Add(groupsBase.GetPath(), groupData);
-                                groupKeys[groupsBase.GetParentPath()].Objects.Add(groupData);
+                                groupKeys.Add(groupPath, groupData);
+                                groupKeys[groupParentPath].Objects.Add(groupData);
                             }
                             else
                             {
@@ -512,11 +530,10 @@ namespace Editor.Utilities.FileWriters
                         //================================================================================================================//
                         else
                         {
-                            //Get the group name, this is used to group elements together
-                            var groupName = groupsBase.GetName();
-
+                            string groupPath = groupsBase.Path;
+                            
                             //See if we've already created the group, if not we'll have to add it
-                            if (groupKeys.TryGetValue(groupsBase.GetPath(), out var foundGroup) == false)
+                            if (groupKeys.TryGetValue(groupPath, out var foundGroup) == false)
                             {
                                 var groupData = new MemberGroupInfo
                                 {
@@ -526,7 +543,7 @@ namespace Editor.Utilities.FileWriters
                                 if(isLastGroup)
                                     groupData.Objects.Add(memberInfos[i]);
 
-                                groupKeys.Add(groupsBase.GetPath(), groupData);
+                                groupKeys.Add(groupPath, groupData);
                                 outList.Add(groupData);
                             }
                             else
@@ -604,22 +621,22 @@ namespace Editor.Utilities.FileWriters
             switch (groupBaseAttribute)
             {
                 case VerticalLayoutGroupAttribute _:
-                    writer.WriteLine($"<ui:GroupBox name=\"{groupBaseAttribute.GetName()}\">");
+                    writer.WriteLine($"<ui:GroupBox name=\"{groupBaseAttribute.Name}\">");
                     break;
                 case HorizontalLayoutGroupAttribute _:
-                    writer.WriteLine($"<ui:GroupBox name=\"{groupBaseAttribute.GetName()}\" style=\"flex-direction: row; justify-content: space-around;\">");
+                    writer.WriteLine($"<ui:GroupBox name=\"{groupBaseAttribute.Name}\" class=\"horizontal-group\">");
                     break;
                 case TitleGroupAttribute titleGroup:
-                    labelText = CheckHasBindingPath(nameof(GroupBox),groupBaseAttribute.GetName(), titleGroup.GetLabel());
-                    writer.WriteLine($"<ui:GroupBox name=\"{groupBaseAttribute.GetName()}\" {labelText} class=\"title-group\">");
+                    labelText = CheckHasBindingPath(nameof(GroupBox),groupBaseAttribute.Name, titleGroup.GetLabel());
+                    writer.WriteLine($"<ui:GroupBox name=\"{groupBaseAttribute.Name}\" {labelText} class=\"title-group\">");
                     break;
                 case FoldoutGroupAttribute foldoutGroup:
-                    labelText = CheckHasBindingPath(nameof(Foldout),groupBaseAttribute.GetName(), foldoutGroup.GetLabel());
-                    writer.WriteLine($"<ui:Foldout name=\"{groupBaseAttribute.GetName()}\" {labelText} value=\"true\" class=\"foldout-group\">");
+                    labelText = CheckHasBindingPath(nameof(Foldout),groupBaseAttribute.Name, foldoutGroup.GetLabel());
+                    writer.WriteLine($"<ui:Foldout name=\"{groupBaseAttribute.Name}\" {labelText} value=\"true\" class=\"foldout-group\">");
                     break;
                 case BoxGroupAttribute boxGroup:
-                    labelText = CheckHasBindingPath(nameof(GroupBox),groupBaseAttribute.GetName(), boxGroup.GetLabel());
-                    writer.WriteLine($"<ui:GroupBox name=\"{groupBaseAttribute.GetName()}\" {labelText} class=\"box-group\">");
+                    labelText = CheckHasBindingPath(nameof(GroupBox),groupBaseAttribute.Name, boxGroup.GetLabel());
+                    writer.WriteLine($"<ui:GroupBox name=\"{groupBaseAttribute.Name}\" {labelText} class=\"box-group\">");
                     break;
                 default:
                     throw new NotImplementedException();

@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace Attributes
 {
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = true)]
     [Conditional("UNITY_EDITOR")]
     public class HorizontalLayoutGroupAttribute : GroupBaseAttribute
     {

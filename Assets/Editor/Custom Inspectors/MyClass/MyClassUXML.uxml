@@ -28,4 +28,18 @@
             </ui:GroupBox>
         </ui:GroupBox>
     </ui:Foldout>
+    <ui:Foldout name="VerticalLayout" text="VerticalLayout" value="true" class="foldout-group">
+        <uie:IntegerField name="myInt" label="myInt" value="" binding-path="myInt"/>
+        <ui:GroupBox name="HorizontalGroup" class="horizontal-group">
+            <ui:GroupBox name="BoxGroup1">
+                <uie:FloatField name="myFloat1" label="myFloat1" value="" binding-path="myFloat1"/>
+            </ui:GroupBox>
+            <ui:GroupBox name="BoxGroup2">
+                <uie:FloatField name="myFloat2" label="myFloat2" value="" binding-path="myFloat2"/>
+                <ui:TextField name="myString" label="myString" binding-path="myString" pickingMode="ignore"/>
+                <uie:EnumField name="myEnum" label="myEnum" binding-path="myEnum" type="MyEnum, Assembly-CSharp"/>
+                <ui:Toggle name="myBool" label="myBool" binding-path="myBool"/>
+            </ui:GroupBox>
+        </ui:GroupBox>
+    </ui:Foldout>
 </ui:UXML>

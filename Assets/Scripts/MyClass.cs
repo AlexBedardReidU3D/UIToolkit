@@ -31,6 +31,20 @@ public class MyClass : MonoBehaviour
     [TitleGroup("Foldout2/BoxGroup/TitleGroup")]
     private string mystackedfield;
 
+    [SerializeField, FoldoutGroup("VerticalLayout")]
+    private int myInt;
+    [HorizontalLayoutGroup("VerticalLayout/HorizontalGroup")]
+    [SerializeField, VerticalLayoutGroup("VerticalLayout/HorizontalGroup/BoxGroup1")]
+    private float myFloat1;
+    [SerializeField, VerticalLayoutGroup("VerticalLayout/HorizontalGroup/BoxGroup2")]
+    private float myFloat2;
+    [SerializeField, VerticalLayoutGroup("VerticalLayout/HorizontalGroup/BoxGroup2")]
+    private string myString;
+    [SerializeField, VerticalLayoutGroup("VerticalLayout/HorizontalGroup/BoxGroup2")]
+    private MyEnum myEnum;
+    [SerializeField, VerticalLayoutGroup("VerticalLayout/HorizontalGroup/BoxGroup2")]
+    private bool myBool;
+
     /*[SerializeField]
     private bool condition1;
     [SerializeField, EnableIf("condition1")]
